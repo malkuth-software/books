@@ -2,31 +2,31 @@
  "files": [
   {
    "path": "books/base-456d97aa6a61b360.plb",
-   "url": "https://github.com/falseywinchnet/books/releases/download/library-data/base-456d97aa6a61b360.plb",
+   "url": "https://github.com/malkuth-software/books/releases/download/library-data/base-456d97aa6a61b360.plb",
    "size": 7616891,
    "sha256": "456d97aa6a61b3604c438717e6c9c492073c95bb670e000e36b1af2e7c318a69"
   },
   {
    "path": "books/block-1-c168d1de55847d6e.plb",
-   "url": "https://github.com/falseywinchnet/books/releases/download/library-data/block-1-c168d1de55847d6e.plb",
+   "url": "https://github.com/malkuth-software/books/releases/download/library-data/block-1-c168d1de55847d6e.plb",
    "size": 45018877,
    "sha256": "c168d1de55847d6eb605a7178f56202d1d9dcec41f2901c4b3a29dabfc9b6dbf"
   },
   {
    "path": "books/block-2-9b3b7a73d0b08289.plb",
-   "url": "https://github.com/falseywinchnet/books/releases/download/library-data/block-2-9b3b7a73d0b08289.plb",
+   "url": "https://github.com/malkuth-software/books/releases/download/library-data/block-2-9b3b7a73d0b08289.plb",
    "size": 33083464,
    "sha256": "9b3b7a73d0b08289f43e66d163004f706c525e84ae332f069041cb05df39bdb5"
   },
   {
    "path": "books/block-3-e3ba1b1649b09eb6.plb",
-   "url": "https://github.com/falseywinchnet/books/releases/download/library-data/block-3-e3ba1b1649b09eb6.plb",
+   "url": "https://github.com/malkuth-software/books/releases/download/library-data/block-3-e3ba1b1649b09eb6.plb",
    "size": 60145047,
    "sha256": "e3ba1b1649b09eb654f518ee6670b8b873e10a4d42f61ca108492c8b3220cf85"
   },
   {
    "path": "books/block-4-d152b75533172d4e.plb",
-   "url": "https://github.com/falseywinchnet/books/releases/download/library-data/block-4-d152b75533172d4e.plb",
+   "url": "https://github.com/malkuth-software/books/releases/download/library-data/block-4-d152b75533172d4e.plb",
    "size": 2307186,
    "sha256": "d152b75533172d4e62bd7a3e2f6f3678cb475f38c177fd0d51ea623e529bf62b"
   }

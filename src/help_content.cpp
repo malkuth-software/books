@@ -11,7 +11,7 @@ std::string help_about() {
            "never sold. There are no accounts, advertisements or downloads; the whole library "
            "comes with the application and your places stay on your computer.\n\n"
            "Its companion, PlaySuite, holds card games, puzzles and living scenes: "
-           "github.com/falseywinchnet/games.\n\n"
+           "github.com/malkuth-software/games.\n\n"
            "When reporting a problem, include the book, the Pocket Library's version, the "
            "operating system and the steps that led to it. A screenshot helps reproduce it.";
 }

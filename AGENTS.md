@@ -1,7 +1,7 @@
 # Pocket Library development
 
 The Pocket Library is one native C++20 application on GUI.Forms holding a library of
-books. It is PlaySuite's shell (falseywinchnet/games) with one volume on its shelf: the
+books. It is PlaySuite's shell (malkuth-software/games) with one volume on its shelf: the
 library opens straight onto its bookcase, with the command capsule, Help and the
 Settings screen floating over it. Internal identifiers keep PlaySuite's names where the
 shell came from (`games::`, `GAMES_*` variables, `GAME.json`), so code moves between
