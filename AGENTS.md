@@ -84,7 +84,11 @@ publishes a release.
 Every change reaches `main` through a pull request whose checks pass; nothing is pushed
 to `main` directly, from the M4 or anywhere else. Open the PR from a branch, set it to
 merge automatically when its required checks pass, and do not wait on CI. A CI step
-never pushes to `main`; work that once did runs as a check on the pull request. Before
+never pushes to `main`; work that once did runs as a check on the pull request. The one
+required check is `Pocket Library CI summary`, the last job of
+`.github/workflows/applications.yml`: it reports on every pull request and passes only
+when each job the change needs passed (`changes`, `prepare`, the `core` matrix on pull
+requests and the `native` release-gate matrix; a docs-only change skips the builds). Before
 any push, `git merge-base --is-ancestor be3731f HEAD` must succeed: the history before
 the 2026-10-27 reset is never published again.
 

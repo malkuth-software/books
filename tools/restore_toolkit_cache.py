@@ -20,9 +20,9 @@ from pathlib import Path
 
 from package_common import TOOLKIT_REVISION
 
-# Our platform names to GUI.Forms' archive names.
+# The harness platform names, which are also GUI.Forms' archive names.
 ARCHIVES = {"windows-x64": "windows-x64", "macos-arm64": "macos-arm64",
-            "linux-amd64": "linux-x64", "linux-arm64": "linux-arm64"}
+            "linux-x64": "linux-x64", "linux-arm64": "linux-arm64"}
 # SHA-256 of each archive in release build-<TOOLKIT_REVISION>.
 DIGESTS = {
     "linux-arm64": "65443b9035375c15e2703958afe052401470fe45ff834b1918fb247b2b50e8f0",
