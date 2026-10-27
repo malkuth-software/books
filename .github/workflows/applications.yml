@@ -4,8 +4,9 @@ on:
     branches: [main]
     tags: ['v*']
     paths-ignore: ['docs/**', '*.md']
+  # Every pull request runs this workflow, so its summary always reports; the
+  # changes job skips the builds when only docs/** and Markdown changed.
   pull_request:
-    paths-ignore: ['docs/**', '*.md']
   workflow_dispatch:
     inputs:
       publish:
@@ -18,7 +19,30 @@ concurrency:
   group: applications-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      build: ${{ steps.paths.outputs.build }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # A pull request's checkout is its merge commit, so BASE...HEAD is the
+      # change. Pushes and manual runs always build.
+      - name: Select the jobs this change needs
+        id: paths
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          build=true
+          if [ -n "$BASE" ] && ! git diff --name-only "$BASE...HEAD" | grep -v -E '^docs/|\.md$' | grep -q .; then
+            build=false
+          fi
+          echo "build=$build" | tee -a "$GITHUB_OUTPUT"
   prepare:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     outputs:
@@ -59,7 +83,88 @@ jobs:
           name: runtime
           path: build/runtime.tar.gz
           compression-level: 0
-  application:
+  # The portable library core without GUI.Forms, on pull requests only: on main
+  # the native jobs compile and run every one of these tests.
+  core:
+    needs: changes
+    if: needs.changes.outputs.build == 'true' && github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-2022
+            platform: windows-x64
+            shell: 'msys2 {0}'
+          - runner: macos-15
+            platform: macos-arm64
+            shell: bash
+          - runner: ubuntu-24.04
+            platform: linux-x64
+            shell: bash
+          - runner: ubuntu-24.04-arm
+            platform: linux-arm64
+            shell: bash
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - uses: actions/checkout@v4
+      # The harness at the commit harness.lock pins, at template_harness/.
+      - name: Read the harness pin
+        id: harness
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "repository=$(sed -n 's/^repository = "\(.*\)"$/\1/p' harness.lock)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(sed -n 's/^commit = "\(.*\)"$/\1/p' harness.lock)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: runner.os == 'Windows'
+        with:
+          repository: ${{ steps.harness.outputs.repository }}
+          ref: ${{ steps.harness.outputs.commit }}
+          path: template_harness
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        if: runner.os == 'Windows'
+        with:
+          python-version: '3.14'
+      # GUI.Forms' published MSYS2 CLANG64 tree (LLVM 22.1.8), restored by the
+      # harness without the MSYS2 mirrors; it puts msys2.cmd on PATH.
+      - name: Restore GUI.Forms' Windows toolchain
+        if: runner.os == 'Windows'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HARNESS_WORKSPACE: ${{ github.workspace }}
+          HARNESS_PROJECT: ${{ github.workspace }}/template_harness/projects/books.toml
+        run: |
+          test "$(git -C template_harness rev-parse HEAD)" = "${{ steps.harness.outputs.commit }}"
+          python template_harness/harness/windows_toolchain.py restore
+      - name: Install macOS tools
+        if: runner.os == 'macOS'
+        run: brew install ninja
+      - name: Install Linux tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Configure the portable library core
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DGAMES_BUILD_APPLICATION=OFF
+      - name: Build
+        run: cmake --build build --parallel 4
+      - name: Test the library core
+        run: ctest --test-dir build --output-on-failure --timeout 180 --parallel 4 --output-junit results.xml -LE design
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: core-checks-${{ matrix.platform }}
+          path: |
+            build/results.xml
+            build/Testing/Temporary/LastTest.log
+          if-no-files-found: warn
+  # The release gate (projects/books.toml's native_job): builds, tests, packages
+  # and smoke-tests every host.
+  native:
     needs: prepare
     env:
       GAMES_RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
@@ -77,7 +182,7 @@ jobs:
             platform: macos-arm64
             shell: bash
           - runner: ubuntu-24.04
-            platform: linux-amd64
+            platform: linux-x64
             shell: bash
           - runner: ubuntu-24.04-arm
             platform: linux-arm64
@@ -308,14 +413,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: application-checks-${{ matrix.platform }}
+          name: native-checks-${{ matrix.platform }}
           path: |
             .build/native/app/results.xml
             .build/native/app/Testing/Temporary/LastTest.log
           if-no-files-found: warn
   release:
     if: needs.prepare.outputs.publish == 'true'
-    needs: [prepare, application]
+    needs: [prepare, native]
     runs-on: ubuntu-24.04
     concurrency:
       group: pocketlibrary-publication
@@ -337,3 +442,33 @@ jobs:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           python3 tools/publish_tested_release.py --artifacts dist
+  # The one required check: it reports on every pull request and fails unless
+  # each job this change needs passed. Skips are accepted only by design: the
+  # builds when only docs changed, core on pushes.
+  summary:
+    name: Pocket Library CI summary
+    if: always()
+    needs: [changes, prepare, core, native]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every needed job
+        env:
+          BUILD: ${{ needs.changes.outputs.build }}
+          EVENT: ${{ github.event_name }}
+          CHANGES: ${{ needs.changes.result }}
+          PREPARE: ${{ needs.prepare.result }}
+          CORE: ${{ needs.core.result }}
+          NATIVE: ${{ needs.native.result }}
+        run: |
+          echo "build=$BUILD changes=$CHANGES prepare=$PREPARE core=$CORE native=$NATIVE"
+          test "$CHANGES" = success
+          if [ "$BUILD" = true ]; then
+            test "$PREPARE" = success
+            test "$NATIVE" = success
+            if [ "$EVENT" = pull_request ]; then test "$CORE" = success; else test "$CORE" = skipped; fi
+          else
+            test "$PREPARE" = skipped
+            test "$CORE" = skipped
+            test "$NATIVE" = skipped
+          fi
