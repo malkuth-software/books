@@ -78,8 +78,15 @@ recipe for the application and its packages. Release CI pins GUI.Forms
 `6fd0071a0f25a8d4d13661dfe61d1c93c5552e00` from `falseywinchnet/gui_forms` and follows
 its LLVM 22.1.8 contract on every platform (macOS 14.0 Apple silicon with GUI.Forms'
 bundled runtime, Windows 10, Ubuntu 24.04), restoring that revision's published
-compiler cache. The main workflow is the release gate: a change proven on the M4 goes
-straight to `main`, and that run is the one check.
+compiler cache. The main workflow is the release gate, and every green push to `main`
+publishes a release.
+
+Every change reaches `main` through a pull request whose checks pass; nothing is pushed
+to `main` directly, from the M4 or anywhere else. Open the PR from a branch, set it to
+merge automatically when its required checks pass, and do not wait on CI. A CI step
+never pushes to `main`; work that once did runs as a check on the pull request. Before
+any push, `git merge-base --is-ancestor be3731f HEAD` must succeed: the history before
+the 2026-10-27 reset is never published again.
 
 The portable core configures without GUI.Forms and builds the library without pixels
 and its tests:
