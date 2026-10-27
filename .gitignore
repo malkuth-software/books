@@ -10,3 +10,13 @@ __pycache__/
 
 # The library's parts (books/pocketlibrary/pinned_assets.json): fetched by tools/pinned_assets.py, never committed.
 books/pocketlibrary/assets/books/*.plb
+
+# The workspace layout (template_harness, source_dir "."): the harness, the
+# GUI.Forms source, CI state and the bootstrap's notes and projects clones
+# sit inside this checkout.
+/template_harness/
+/gui_forms/
+/.ci/
+/notes/
+/notes-*/
+/projects/

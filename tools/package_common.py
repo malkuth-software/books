@@ -8,7 +8,7 @@ import shutil
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-TOOLKIT_REVISION = "6fd0071a0f25a8d4d13661dfe61d1c93c5552e00"
+TOOLKIT_REVISION = "e077f9d5a5117312e65e8c3b741c4edd24013d56"
 
 
 def missing_prepared_files(assets):
@@ -50,6 +50,9 @@ def copy_resources(build, toolkit, destination):
     # placed them (CI keeps them in a cached FETCHCONTENT_BASE_DIR).
     base = re.search(r"^FETCHCONTENT_BASE_DIR:PATH=(.+)$", cache, re.MULTILINE)
     fetched = Path(base.group(1)) if base else build / "_deps"
+    # A source SDK supplies miniaudio itself and points FetchContent at it.
+    override = re.search(r"^FETCHCONTENT_SOURCE_DIR_GUI_FORMS_MINIAUDIO:PATH=(.+)$", cache, re.MULTILINE)
+    miniaudio = Path(override.group(1)) if override else fetched / "gui_forms_miniaudio-src"
     entries = {
         "GUIForms.txt": toolkit / "LICENSE",
         "Unicode.txt": toolkit / "third_party/unicode/LICENSE.txt",
@@ -57,7 +60,7 @@ def copy_resources(build, toolkit, destination):
         "HarfBuzz.txt": toolkit / "third_party/harfbuzz/COPYING",
         "FreeType.txt": toolkit / "third_party/freetype/docs/FTL.TXT",
         "libunibreak.txt": toolkit / "third_party/libunibreak/LICENCE",
-        "miniaudio.txt": fetched / "gui_forms_miniaudio-src/LICENSE",
+        "miniaudio.txt": miniaudio / "LICENSE",
     }
     for name, source in entries.items():
         shutil.copy2(source, notices / name)
@@ -65,14 +68,19 @@ def copy_resources(build, toolkit, destination):
     if skia.is_dir():
         for name, source in {
             "Skia.txt": skia / "LICENSE",
-            "libpng.txt": skia / "third_party/externals/libpng/LICENSE",
-            "zlib.txt": skia / "third_party/externals/zlib/LICENSE",
             "Skia-FreeType.txt": skia / "third_party/externals/freetype/docs/FTL.TXT",
         }.items():
             shutil.copy2(source, notices / name)
-    # Ogg Vorbis is decoded by GUI.Forms' stx_vorbis with its embedded BFFT, and
-    # threads run on GUI.Forms' copy of threadpool_atomic_fast.
+    # Ogg Vorbis is decoded by GUI.Forms' stx_vorbis with its embedded BFFT;
+    # PNG and zlib go through its owned stx_png and stx_zlib (Skia is built
+    # without libpng and zlib), interpolation through stx_conv, and threads run
+    # on GUI.Forms' copy of threadpool_atomic_fast.
     for name, source in {
+        "stx_zlib.txt": toolkit / "stx_zlib/LICENSE",
+        "stx_zlib-puff.txt": toolkit / "stx_zlib/LICENSE-puff.txt",
+        "stx_zlib-zlib.txt": toolkit / "stx_zlib/LICENSE-zlib.txt",
+        "stx_png.txt": toolkit / "stx_png/LICENSE",
+        "stx_conv.txt": toolkit / "stx_conv/LICENSE",
         "stx_vorbis.txt": toolkit / "stx_vorbis/LICENSE",
         "BFFT.txt": toolkit / "stx_vorbis/third_party/bfft/LICENSE",
         "BFFT-provenance.json": toolkit / "stx_vorbis/third_party/bfft/provenance.json",
@@ -84,8 +92,8 @@ def copy_resources(build, toolkit, destination):
         "you choose and opened to the page you left. Search by title or author, click a\n"
         "spine to read; Help is the ? at the top right.\n"
         "Your places are kept per user, separate from this application folder.\n\n"
-        "Source and release notes: https://github.com/falseywinchnet/books\n"
-        "Its companion, PlaySuite (games): https://github.com/falseywinchnet/games\n"
+        "Source and release notes: https://github.com/malkuth-software/books\n"
+        "Its companion, PlaySuite (games): https://github.com/malkuth-software/games\n"
         "Each book's edition and licence is on its About card. Font licenses accompany the\n"
         "fonts; other dependency notices are in licenses/.\n\n"
         "Crafted by Anthropic Claude General Reasoning Agents and OpenAI Codex General\n"

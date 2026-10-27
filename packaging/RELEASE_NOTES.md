@@ -1,4 +1,4 @@
-The Pocket Library: a reading room of 746 books, each set as a printed book on the paper you choose and opened to the page you left. Its companion, PlaySuite (card games, puzzles and living scenes), is at https://github.com/falseywinchnet/games.
+The Pocket Library: a reading room of 746 books, each set as a printed book on the paper you choose and opened to the page you left. Its companion, PlaySuite (card games, puzzles and living scenes), is at https://github.com/malkuth-software/games.
 
 If you read in PlaySuite's Pocket Library before, your places come with you: the first start copies them over.
 

@@ -925,8 +925,11 @@ bool decode_from(std::span<const std::uint8_t> code, std::size_t length, std::ve
             }
             const std::size_t before = std::min(count, back - position);
             std::memcpy(to, history.data() + (reach - (back - position)), before);
+            // Index from data: to[i - back] would add a wrapped size_t to the
+            // pointer whenever i < back, which is undefined behaviour even
+            // though the byte it reaches (position + i - back >= 0) is in range.
             for (std::size_t i = before; i < count; ++i)
-                to[i] = to[i - back];
+                to[i] = data[position + i - back];
         } else if (back >= 8 && count <= 32) {
             // Whole words, running over into what is still to be written (or the slack).
             for (std::size_t i = 0; i < count; i += 8)
@@ -934,8 +937,9 @@ bool decode_from(std::span<const std::uint8_t> code, std::size_t length, std::ve
         } else if (back >= count) {
             std::memcpy(to, to - back, count);
         } else {
+            // back <= position here, so position + i - back never wraps.
             for (std::size_t i = 0; i < count; ++i)
-                to[i] = to[i - back];
+                to[i] = data[position + i - back];
         }
         position += count;
         if (coder.overrun()) {

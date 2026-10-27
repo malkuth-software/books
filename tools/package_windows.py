@@ -13,7 +13,9 @@ SYSTEM = {"kernel32.dll", "user32.dll", "gdi32.dll", "advapi32.dll", "comdlg32.d
           "usp10.dll", "windowscodecs.dll", "ws2_32.dll", "version.dll", "imm32.dll",
           "dwmapi.dll", "ntdll.dll", "msvcrt.dll", "ucrtbase.dll", "bcrypt.dll",
           "secur32.dll", "rpcrt4.dll", "setupapi.dll", "winspool.drv", "winmm.dll",
-          "crypt32.dll", "normaliz.dll"}
+          "crypt32.dll", "normaliz.dll", "uxtheme.dll", "msimg32.dll", "shcore.dll",
+          "dbghelp.dll", "psapi.dll", "userenv.dll", "iphlpapi.dll",
+          "uiautomationcore.dll"}
 
 
 def find_makensis():
@@ -117,7 +119,10 @@ def main():
         shutil.copytree(ROOT / "packaging/licenses/llvm", runtime_notices / "LLVM")
     write_manifest(bundle, "Windows", "x64")
     archive = output / ("pocketlibrary-" + project_version() + "-windows-x64.zip")
-    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as compressed:
+    # A source SDK unpacks with zero timestamps; ZIP cannot hold dates before
+    # 1980, so those entries are clamped to 1980-01-01 instead of refused.
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=9,
+                         strict_timestamps=False) as compressed:
         for path in sorted(bundle.rglob("*")):
             if path.is_file():
                 compressed.write(path, "Pocket Library/" + path.relative_to(bundle).as_posix())
