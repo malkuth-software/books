@@ -1,0 +1,21 @@
+# The paper engine. Included once by the generated registry (and by a game's own
+# standalone build) with ENGINE_DIR set to this folder.
+if(TARGET paper_core)
+  return()
+endif()
+add_library(paper_core STATIC "${ENGINE_DIR}/src/paper.cpp")
+target_include_directories(paper_core PUBLIC "${ENGINE_DIR}/src")
+target_compile_features(paper_core PUBLIC cxx_std_20)
+if(MSVC)
+  target_compile_options(paper_core PRIVATE /utf-8 /W4 /fp:precise)
+else()
+  target_compile_options(paper_core PRIVATE -Wall -Wextra -ffp-contract=off)
+endif()
+include(CTest)
+add_executable(paper_tests "${ENGINE_DIR}/tests/paper_tests.cpp")
+target_link_libraries(paper_tests PRIVATE paper_core)
+add_test(NAME paper_engine COMMAND paper_tests)
+set_tests_properties(paper_engine PROPERTIES TIMEOUT 120)
+# Not a test: writes a swatch sheet of every preset for a person to judge.
+add_executable(paper_swatches "${ENGINE_DIR}/tests/paper_swatches.cpp")
+target_link_libraries(paper_swatches PRIVATE paper_core)

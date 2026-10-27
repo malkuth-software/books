@@ -1,0 +1,325 @@
+name: Build installable Pocket Library
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths-ignore: ['docs/**', '*.md']
+  pull_request:
+    paths-ignore: ['docs/**', '*.md']
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish tested packages from main
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: applications-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select one tested publication version
+        id: version
+        env:
+          PUBLISH_REQUESTED: ${{ inputs.publish }}
+        run: python3 tools/publication_version.py
+      - uses: actions/cache@v4
+        id: runtime-cache
+        with:
+          path: build/runtime-assets
+          # Only what feeds preparation: shared assets, the library's assets, the pins of
+          # its parts (fetched by the preparation) and manifest, the engines' manifests
+          # and the tools. A miss restores the
+          # last runtime and the preparation encodes only the sounds whose sources changed.
+          key: runtime-v1-${{ hashFiles('assets/**', 'books/*/assets/**', 'books/*/pinned_assets.json', 'books/*/GAME.json', 'shared/*/assets/**', 'shared/*/ENGINE.json', 'tools/*portable_assets.py', 'tools/pinned_assets.py', 'tools/game_catalog.py') }}
+          restore-keys: runtime-v1-
+      - name: Install authoring tools
+        if: steps.runtime-cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Prepare compact resources and fetch the library's parts
+        if: steps.runtime-cache.outputs.cache-hit != 'true'
+        run: /usr/bin/python3 tools/prepare_portable_assets.py --output build/runtime-assets --ffmpeg ffmpeg
+      - name: Check first-party C++ style
+        run: python3 scripts/check-style.py
+      - name: Verify and archive resources
+        run: |
+          /usr/bin/python3 tools/verify_portable_assets.py --runtime build/runtime-assets
+          tar -czf build/runtime.tar.gz -C build/runtime-assets .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runtime
+          path: build/runtime.tar.gz
+          compression-level: 0
+  application:
+    needs: prepare
+    env:
+      GAMES_RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-2022
+            platform: windows-x64
+            shell: 'msys2 {0}'
+          - runner: macos-15
+            platform: macos-arm64
+            shell: bash
+          - runner: ubuntu-24.04
+            platform: linux-amd64
+            shell: bash
+          - runner: ubuntu-24.04-arm
+            platform: linux-arm64
+            shell: bash
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - uses: actions/checkout@v4
+      # GUI.Forms lives in its own repository. It sits at gui_forms/ and the
+      # application builds three levels down (.build/native/app), the same layout
+      # as its own CI, so the compiler cache it publishes can match our objects.
+      - name: Fetch reviewed GUI.Forms source
+        uses: actions/checkout@v4
+        with:
+          repository: falseywinchnet/gui_forms
+          ref: 6fd0071a0f25a8d4d13661dfe61d1c93c5552e00
+          path: gui_forms
+      - uses: actions/setup-python@v5
+        if: runner.os == 'Windows'
+        with:
+          python-version: '3.14'
+      # GUI.Forms publishes the MSYS2 tree its cache was compiled with; restoring it
+      # avoids the MSYS2 mirrors and guarantees the compiler the cache needs.
+      - name: Restore GUI.Forms' Windows toolchain
+        id: msys
+        if: runner.os == 'Windows'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/restore_windows_toolchain.py
+      # Only when the published toolchain could not be restored.
+      - uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows' && steps.msys.outputs.restored != 'true'
+        with:
+          msystem: CLANG64
+          update: true
+          install: >-
+            mingw-w64-clang-x86_64-clang mingw-w64-clang-x86_64-lld
+            mingw-w64-clang-x86_64-llvm-tools mingw-w64-clang-x86_64-cmake
+            mingw-w64-clang-x86_64-ninja mingw-w64-clang-x86_64-python
+            mingw-w64-clang-x86_64-nsis mingw-w64-clang-x86_64-ccache
+            mingw-w64-clang-x86_64-winpthreads git
+      # Name the compiler as GUI.Forms' CI does. CMake otherwise picks cc.exe and
+      # c++.exe: the same Clang, but different files to ccache, so none of the
+      # published cache would match.
+      - name: Select Windows compiler
+        if: runner.os == 'Windows'
+        run: |
+          echo "CC=clang" >> "$GITHUB_ENV"
+          echo "CXX=clang++" >> "$GITHUB_ENV"
+      # GUI.Forms' LLVM 22 contract: Homebrew llvm@22 compiles; the libc++, libc++abi
+      # and libunwind the app ships are GUI.Forms' build of LLVM 22.1.8 for macOS
+      # 14 (Homebrew's own require macOS 26). gui_forms/cmake/llvm22.cmake supplies
+      # the flags, the arm64 architecture and the 14.0 minimum.
+      - name: Install macOS LLVM 22 compiler
+        if: runner.os == 'macOS'
+        run: |
+          brew install ninja llvm@22 ccache
+          echo "$(brew --prefix llvm@22)/bin" >> "$GITHUB_PATH"
+          echo "CC=clang" >> "$GITHUB_ENV"
+          echo "CXX=clang++" >> "$GITHUB_ENV"
+          echo "OBJCXX=clang++" >> "$GITHUB_ENV"
+          echo "GUI_FORMS_LLVM_RUNTIME=$PWD/.build/toolchain/llvm-22.1.8-macos14" >> "$GITHUB_ENV"
+      # Ubuntu's Clang 18 rejects current GUI.Forms; use the LLVM 22 series, as
+      # GUI.Forms' own CI does, which also lets its compiler cache match.
+      - name: Install Linux compiler and desktop libraries
+        if: runner.os == 'Linux'
+        run: |
+          curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key -o "$RUNNER_TEMP/llvm-key.asc"
+          sudo install -m 0644 "$RUNNER_TEMP/llvm-key.asc" /usr/share/keyrings/apt-llvm.asc
+          echo 'deb [signed-by=/usr/share/keyrings/apt-llvm.asc] https://apt.llvm.org/noble/ llvm-toolchain-noble-22 main' | sudo tee /etc/apt/sources.list.d/llvm-22.list
+          sudo apt-get update
+          sudo apt-get install -y clang-22 llvm-22 ninja-build generate-ninja ccache \
+            libx11-dev libxcursor-dev libatk1.0-dev libatk-bridge2.0-dev \
+            libasound2t64 patchelf xvfb dpkg-dev
+          echo /usr/lib/llvm-22/bin >> "$GITHUB_PATH"
+          echo "CC=clang" >> "$GITHUB_ENV"
+          echo "CXX=clang++" >> "$GITHUB_ENV"
+      - name: Fetch pinned text sources
+        run: |
+          sh gui_forms/third_party/fetch_text_stack.sh
+          sh gui_forms/third_party/fetch_linebreak.sh
+      # GUI.Forms publishes a compiler cache (and on macOS its runtime) from each
+      # tested main build. Restore the one for the pinned revision, checked against
+      # its recorded digest; a miss only means compiling from source.
+      - name: Restore GUI.Forms compiler cache and runtime
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/restore_toolkit_cache.py "${{ matrix.platform }}" || python tools/restore_toolkit_cache.py "${{ matrix.platform }}"
+      # Restore and save separately: the save runs right after a successful
+      # compile, so a later test or packaging failure no longer discards it.
+      # Windows failed late until 2026-10-06, never saved, and kept restoring
+      # a GCC-era cache that clang could not use.
+      - uses: actions/cache/restore@v4
+        id: objects
+        with:
+          path: .ccache
+          key: library-objects-llvm22-v1-${{ matrix.platform }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**', 'tests/**', 'books/*/src/**', 'books/*/tests/**', 'books/*/*.cpp', 'books/*/*.cmake', 'shared/**') }}
+          restore-keys: library-objects-llvm22-v1-${{ matrix.platform }}-
+      - name: Configure compiler cache
+        run: |
+          cache_dir="$PWD/.ccache"
+          if command -v cygpath >/dev/null; then cache_dir="$(cygpath -m "$cache_dir")"; fi
+          cache_base="$PWD"
+          if command -v cygpath >/dev/null; then cache_base="$(cygpath -m "$cache_base")"; fi
+          export CCACHE_DIR="$cache_dir"
+          echo "CCACHE_DIR=$cache_dir" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$cache_base" >> "$GITHUB_ENV"
+          echo "CCACHE_COMPILERCHECK=content" >> "$GITHUB_ENV"
+          ccache --max-size=900M
+          ccache --zero-stats
+      # Keyed on how GUI.Forms fetches and configures Skia, so a pin that builds it
+      # differently (phase 7 dropped its font backend) never restores the old archive.
+      - uses: actions/cache/restore@v4
+        if: runner.os != 'Windows'
+        id: skia
+        with:
+          path: gui_forms/third_party/skia
+          key: games-skia-llvm22-v2-${{ matrix.platform }}-${{ hashFiles('gui_forms/third_party/fetch_skia_cpu.sh', 'gui_forms/third_party/build_skia_cpu*.sh', 'gui_forms/third_party/skia_cpu*.gn', 'gui_forms/third_party/skia_*.patch') }}
+      - name: Build CPU renderer on Linux
+        if: runner.os == 'Linux' && steps.skia.outputs.cache-hit != 'true'
+        run: |
+          GUI_FORMS_SYSTEM_BUILD_TOOLS=1 sh gui_forms/third_party/fetch_skia_cpu.sh
+          BUILD_JOBS=4 sh gui_forms/third_party/build_skia_cpu_linux.sh "$PWD/gui_forms/third_party/skia/out/games"
+      - name: Build CPU renderer on macOS
+        if: runner.os == 'macOS' && steps.skia.outputs.cache-hit != 'true'
+        run: |
+          sh gui_forms/third_party/fetch_skia_cpu.sh
+          BUILD_JOBS=4 sh gui_forms/third_party/build_skia_cpu.sh "$PWD/gui_forms/third_party/skia/out/games"
+      - uses: actions/cache/save@v4
+        if: runner.os != 'Windows' && steps.skia.outputs.cache-hit != 'true'
+        with:
+          path: gui_forms/third_party/skia
+          key: ${{ steps.skia.outputs.cache-primary-key }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: runtime
+          path: build/data
+      # Pinned dependency sources (miniaudio) are fetched once and kept;
+      # a changed pin repopulates only that dependency.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .build/fetch/*-src
+            .build/fetch/*-subbuild
+          key: fetch-v1-${{ matrix.platform }}-${{ hashFiles('CMakeLists.txt', 'cmake/*.cmake', 'tests/portable_*/CMakeLists.txt', 'gui_forms/cmake/Audio.cmake') }}
+          restore-keys: fetch-v1-${{ matrix.platform }}-
+      - name: Configure complete application
+        run: |
+          mkdir -p build/runtime
+          tar -xzf build/data/runtime.tar.gz -C build/runtime
+          cmake -S . -B .build/native/app -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_OBJCXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_TOOLCHAIN_FILE="$PWD/gui_forms/cmake/llvm22.cmake" \
+            -DFETCHCONTENT_BASE_DIR="$PWD/.build/fetch" -DFETCHCONTENT_UPDATES_DISCONNECTED=ON \
+            -DGAMES_TOOLKIT_SOURCE_DIR="$PWD/gui_forms" \
+            -DGAMES_RUNTIME_ASSET_DIR="$PWD/build/runtime" \
+            -DGAMES_RELEASE_VERSION="$GAMES_RELEASE_VERSION" \
+            -DGUI_FORMS_SKIA_PREBUILT=ON \
+            -DGUI_FORMS_SKIA_OUT="$PWD/gui_forms/third_party/skia/out/games"
+      # Hosted runners are dedicated machines (4 cores on Linux and Windows, 3 on
+      # macOS), unlike the shared development hosts AGENTS.md limits to two jobs.
+      - name: Compile the application
+        id: compile
+        run: cmake --build .build/native/app --parallel 4
+      - name: Report compiler cache statistics
+        if: always()
+        run: ccache --show-stats --verbose
+      - uses: actions/cache/save@v4
+        if: always() && steps.compile.outcome == 'success' && steps.objects.outputs.cache-hit != 'true'
+        with:
+          path: .ccache
+          key: ${{ steps.objects.outputs.cache-primary-key }}
+      - name: Test complete application
+        run: ctest --test-dir .build/native/app --output-on-failure --timeout 180 --parallel 4 --output-junit results.xml -LE design
+      - name: Package Windows application and installer
+        if: runner.os == 'Windows'
+        run: python tools/package_windows.py --build .build/native/app --toolkit gui_forms --runtime-dir /clang64/bin --installer
+      - name: Package macOS application and installer
+        if: runner.os == 'macOS'
+        run: python3 tools/package_macos.py --build .build/native/app --toolkit gui_forms --runtime "$GUI_FORMS_LLVM_RUNTIME"
+      - name: Package Linux application and installer
+        if: runner.os == 'Linux'
+        run: python3 tools/package_linux.py --build .build/native/app --toolkit gui_forms
+      - name: Launch packaged Windows application
+        if: runner.os == 'Windows'
+        run: |
+          python tools/smoke_package.py "dist/Pocket Library/pocketlibrary.exe"
+          python tools/test_windows_installer.py dist/*-setup.exe
+      - name: Launch packaged macOS application
+        if: runner.os == 'macOS'
+        run: |
+          python3 tools/smoke_package.py "dist/Pocket Library.app/Contents/MacOS/pocketlibrary"
+          sudo /usr/sbin/installer -pkg dist/*.pkg -target /
+          python3 tools/smoke_package.py "/Applications/Pocket Library.app/Contents/MacOS/pocketlibrary"
+      - name: Install and launch Linux package
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y ./dist/*.deb
+          xvfb-run -a python3 tools/smoke_package.py /usr/lib/rainstar-pocketlibrary/pocketlibrary
+      - uses: actions/upload-artifact@v4
+        with:
+          name: library-${{ matrix.platform }}
+          path: |
+            dist/*.zip
+            dist/*.exe
+            dist/*.pkg
+            dist/*.deb
+            dist/*.tar.gz
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: application-checks-${{ matrix.platform }}
+          path: |
+            .build/native/app/results.xml
+            .build/native/app/Testing/Temporary/LastTest.log
+          if-no-files-found: warn
+  release:
+    if: needs.prepare.outputs.publish == 'true'
+    needs: [prepare, application]
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: pocketlibrary-publication
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: library-*
+          merge-multiple: true
+          path: dist
+      - name: Publish exactly the tested revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          python3 tools/publish_tested_release.py --artifacts dist

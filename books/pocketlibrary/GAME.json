@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "pocketlibrary",
+  "entry_id": 24,
+  "entry_name": "pocketlibrary",
+  "namespace": "pl",
+  "title": "Pocket Library",
+  "kind": "Bookshelf",
+  "category": "quiet",
+  "blurb": "Sometimes reading is fun too",
+  "enabled": true,
+  "hosted": true,
+  "colors": [
+    [27, 23, 21],
+    [74, 47, 28],
+    [216, 178, 98]
+  ],
+  "view_class": "PocketLibraryView",
+  "view_header": "pocketlibrary_view.hpp",
+  "module": "module.cpp",
+  "cover": "cover.cpp",
+  "help": "help.md",
+  "help_topics": [],
+  "build": "build.cmake",
+  "engines": [
+    "paper"
+  ],
+  "libraries": [
+    "pl_core",
+    "pl_page"
+  ],
+  "core_sources": [
+    "src/book.cpp",
+    "src/container.cpp",
+    "src/library.cpp",
+    "src/lz_coder.cpp",
+    "src/sha256.cpp",
+    "src/text_pack.cpp"
+  ],
+  "ui_sources": [
+    "src/pocketlibrary_view.cpp",
+    "src/printer.cpp",
+    "src/reader.cpp",
+    "src/shelf_scene.cpp",
+    "src/platform/raster.cpp"
+  ],
+  "audio_adapter": "src/platform/audio.cpp",
+  "audio_sources": [
+    "src/platform/audio.cpp"
+  ],
+  "audio_prefix": "pl_",
+  "audio_manifest": "",
+  "core_tests": [
+    "tests/library_tests.cpp"
+  ],
+  "contract_test": "tests/view_contract_tests.cpp",
+  "borrowed": [
+    "src/platform/raster.cpp",
+    "src/platform/raster.hpp",
+    "src/sha256.cpp",
+    "src/sha256.hpp",
+    "src/page/font_set.cpp",
+    "src/page/font_set.hpp",
+    "src/page/text_layout.cpp",
+    "src/page/text_layout.hpp",
+    "src/page/page_raster.cpp",
+    "src/page/page_raster.hpp",
+    "src/page/page_units.hpp",
+    "src/page/hit_map.cpp",
+    "src/page/hit_map.hpp"
+  ],
+  "settles_when_untouched": true
+}

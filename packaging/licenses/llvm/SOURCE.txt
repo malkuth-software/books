@@ -1,0 +1,4 @@
+LLVM 22.1.8 runtime license notices (libc++, libc++abi, libunwind).
+Source: https://github.com/llvm/llvm-project/tree/llvmorg-22.1.8
+Windows ships MSYS2 CLANG64's LLVM 22.1.8 runtime with these notices. macOS ships
+GUI.Forms' LLVM 22.1.8 runtime built for macOS 14, with the notices it carries.

@@ -1,0 +1,79 @@
+name: Native library core checks
+# On main the installable build already compiles and runs every one of these tests on
+# all four platforms, so this matrix runs only for pull requests.
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: core-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-2022
+            platform: windows-x64
+            shell: 'msys2 {0}'
+          - runner: macos-15
+            platform: macos-arm64
+            shell: bash
+          - runner: ubuntu-24.04
+            platform: linux-x64
+            shell: bash
+          - runner: ubuntu-24.04-arm
+            platform: linux-arm64
+            shell: bash
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        if: runner.os == 'Windows'
+        with:
+          python-version: '3.14'
+      # GUI.Forms publishes the MSYS2 tree its cache was compiled with; restoring it
+      # avoids the MSYS2 mirrors and guarantees the compiler the cache needs.
+      - name: Restore GUI.Forms' Windows toolchain
+        id: msys
+        if: runner.os == 'Windows'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/restore_windows_toolchain.py
+      # Only when the published toolchain could not be restored.
+      - uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows' && steps.msys.outputs.restored != 'true'
+        with:
+          msystem: CLANG64
+          update: true
+          install: >-
+            mingw-w64-clang-x86_64-clang mingw-w64-clang-x86_64-lld
+            mingw-w64-clang-x86_64-llvm-tools mingw-w64-clang-x86_64-cmake
+            mingw-w64-clang-x86_64-ninja git
+      - name: Install macOS tools
+        if: runner.os == 'macOS'
+        run: brew install ninja
+      - name: Install Linux tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Configure the portable library core
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DGAMES_BUILD_APPLICATION=OFF
+      - name: Build
+        run: cmake --build build --parallel 4
+      - name: Test the library core
+        run: ctest --test-dir build --output-on-failure --timeout 180 --parallel 4 --output-junit results.xml -LE design
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: core-checks-${{ matrix.platform }}
+          path: |
+            build/results.xml
+            build/Testing/Temporary/LastTest.log
+          if-no-files-found: warn

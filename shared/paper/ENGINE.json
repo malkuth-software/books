@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "paper",
+  "namespace": "paper",
+  "title": "Paper",
+  "summary": "A seeded, deterministic painter of paper: slow mottling, the surface's tooth lit from the upper left, fine grain, short light and dark fibres, laid and chain lines, parchment blotches and a shadow into the gutter, quiet enough to read on, as seamless tiles or whole sheets in milliseconds.",
+  "build": "build.cmake",
+  "libraries": [
+    "paper_core"
+  ],
+  "source_directories": [
+    "src"
+  ],
+  "tests": [
+    "tests/paper_tests.cpp"
+  ]
+}
