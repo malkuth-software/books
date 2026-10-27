@@ -29,7 +29,14 @@ if(GAMES_BUILD_APPLICATION)
     "${GAME_MODULE_DIR}/src/page/hit_map.cpp"
     "${GAME_MODULE_DIR}/src/book_layout.cpp")
   target_include_directories(pl_page PUBLIC "${GAME_MODULE_DIR}/src")
-  target_link_libraries(pl_page PUBLIC pl_core paper_core PRIVATE freetype harfbuzz)
+  target_link_libraries(pl_page PUBLIC pl_core paper_core)
+  # An installed GUI.Forms exports its pinned text stack as GUIForms::FreeType and
+  # GUIForms::HarfBuzz; a source build (add_subdirectory) names it freetype and harfbuzz.
+  if(TARGET GUIForms::FreeType)
+    target_link_libraries(pl_page PRIVATE GUIForms::FreeType GUIForms::HarfBuzz)
+  else()
+    target_link_libraries(pl_page PRIVATE freetype harfbuzz)
+  endif()
   if(NOT MSVC)
     target_compile_options(pl_page PRIVATE -Wall -Wextra -ffp-contract=off)
   endif()

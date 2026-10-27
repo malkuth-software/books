@@ -25,10 +25,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
-if(GAMES_BUILD_APPLICATION)
+if(GAMES_BUILD_APPLICATION AND GUIForms_DIR)
+  # An installed GUI.Forms built with every feature (tools/build_sdk.py
+  # --features all, as the local lockstep install is) replaces the source
+  # build: the text masks, the loop transport and the pinned FreeType and
+  # HarfBuzz the page compositor sets type with are its components.
+  find_package(GUIForms CONFIG REQUIRED
+    COMPONENTS Application Audio AudioLoopTransport TextMasks FreeType HarfBuzz)
+elseif(GAMES_BUILD_APPLICATION)
   set(GAMES_TOOLKIT_SOURCE_DIR "" CACHE PATH "Reviewed GUI.Forms source for development application builds")
   if(NOT EXISTS "${GAMES_TOOLKIT_SOURCE_DIR}/include/gui_forms/text_mask.hpp")
-    message(FATAL_ERROR "Set GAMES_TOOLKIT_SOURCE_DIR to the reviewed GUI.Forms source. Text masks and bar audio are not yet exported by the installed SDK; see docs/PORTABLE_TEXT_REQUIREMENTS.md.")
+    message(FATAL_ERROR "Set GAMES_TOOLKIT_SOURCE_DIR to the reviewed GUI.Forms source, or GUIForms_DIR to the package of a GUI.Forms installed with --features all; see docs/BUILDING.md.")
   endif()
   set(GUI_FORMS_BUILD_GALLERY OFF CACHE BOOL "" FORCE)
   set(GUI_FORMS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
