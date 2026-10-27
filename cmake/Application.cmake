@@ -46,7 +46,11 @@ endif()
 target_link_libraries(pocketlibrary PRIVATE game_ui)
 set_target_properties(pocketlibrary PROPERTIES
     MACOSX_BUNDLE_BUNDLE_NAME "Pocket Library"
+    # Earlier releases' identifier, kept so macOS treats a new version as the
+    # same application (and tools/package_macos.py's pkg identifier with it);
+    # the vendor shown is Malkuth Software.
     MACOSX_BUNDLE_GUI_IDENTIFIER "org.rainstar.pocketlibrary"
+    MACOSX_BUNDLE_COPYRIGHT "Malkuth Software"
     MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
 if(APPLE)

@@ -33,20 +33,39 @@ def find_makensis():
 
 
 def make_installer(bundle, output):
-    installer = output / ("pocketlibrary-" + project_version() + "-windows-x64-setup.exe")
+    version = project_version()
+    installer = output / ("pocketlibrary-" + version + "-windows-x64-setup.exe")
     script = output / "pocketlibrary-installer.nsi"
+    # The vendor people see is Malkuth Software (owner, 2026-10-27): the
+    # publisher, the Start menu folder and the installer's version resource.
+    # The machine identities stay those of earlier releases, so an upgrade
+    # replaces the installed copy in place: the default folder under Rainstar\
+    # and the RainstarPocketLibrary uninstall key (on the other hosts, the
+    # package name, the bundle identifier and the per-user save folders).
+    # InstallLocation lets later upgrades find a folder the person chose.
+    uninstall_key = "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\RainstarPocketLibrary"
     lines = ['Unicode True', '!include "MUI2.nsh"', 'Name "Pocket Library"',
              'OutFile "' + str(installer).replace("/", "\\") + '"', 'InstallDir "$LOCALAPPDATA\\Rainstar\\Pocket Library"',
+             'InstallDirRegKey HKCU "' + uninstall_key + '" "InstallLocation"',
+             'BrandingText "Malkuth Software"', 'VIProductVersion "' + version + '.0"',
+             'VIAddVersionKey "ProductName" "Pocket Library"', 'VIAddVersionKey "CompanyName" "Malkuth Software"',
+             'VIAddVersionKey "FileDescription" "Pocket Library installer"',
+             'VIAddVersionKey "FileVersion" "' + version + '"', 'VIAddVersionKey "ProductVersion" "' + version + '"',
              'RequestExecutionLevel user', '!insertmacro MUI_PAGE_WELCOME',
              '!insertmacro MUI_PAGE_DIRECTORY', '!insertmacro MUI_PAGE_INSTFILES',
              '!insertmacro MUI_PAGE_FINISH', '!insertmacro MUI_UNPAGE_CONFIRM',
              '!insertmacro MUI_UNPAGE_INSTFILES', '!insertmacro MUI_LANGUAGE "English"',
              'Section "Pocket Library"', 'SetOutPath "$INSTDIR"', 'File /r "' + str(bundle / "*").replace("/", "\\") + '"',
-             'CreateDirectory "$SMPROGRAMS\\Rainstar"',
-             'CreateShortcut "$SMPROGRAMS\\Rainstar\\Pocket Library.lnk" "$INSTDIR\\pocketlibrary.exe"',
+             # An earlier release's Start menu folder gives way to the vendor's.
+             'Delete "$SMPROGRAMS\\Rainstar\\Pocket Library.lnk"', 'RMDir "$SMPROGRAMS\\Rainstar"',
+             'CreateDirectory "$SMPROGRAMS\\Malkuth Software"',
+             'CreateShortcut "$SMPROGRAMS\\Malkuth Software\\Pocket Library.lnk" "$INSTDIR\\pocketlibrary.exe"',
              'WriteUninstaller "$INSTDIR\\Uninstall.exe"',
-             'WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\RainstarPocketLibrary" "DisplayName" "Pocket Library"',
-             'WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\RainstarPocketLibrary" "UninstallString" \'$\\"$INSTDIR\\Uninstall.exe$\\"\'',
+             'WriteRegStr HKCU "' + uninstall_key + '" "DisplayName" "Pocket Library"',
+             'WriteRegStr HKCU "' + uninstall_key + '" "UninstallString" \'$\\"$INSTDIR\\Uninstall.exe$\\"\'',
+             'WriteRegStr HKCU "' + uninstall_key + '" "Publisher" "Malkuth Software"',
+             'WriteRegStr HKCU "' + uninstall_key + '" "DisplayVersion" "' + version + '"',
+             'WriteRegStr HKCU "' + uninstall_key + '" "InstallLocation" "$INSTDIR"',
              'SectionEnd', 'Section "Uninstall"']
     directories = []
     for path in sorted(bundle.rglob("*")):
@@ -60,8 +79,9 @@ def make_installer(bundle, output):
     for relative in sorted(directories, key=len, reverse=True):
         lines.append('RMDir "$INSTDIR\\' + relative + '"')
     lines += ['Delete "$INSTDIR\\Uninstall.exe"', 'RMDir "$INSTDIR"',
+              'Delete "$SMPROGRAMS\\Malkuth Software\\Pocket Library.lnk"', 'RMDir "$SMPROGRAMS\\Malkuth Software"',
               'Delete "$SMPROGRAMS\\Rainstar\\Pocket Library.lnk"', 'RMDir "$SMPROGRAMS\\Rainstar"',
-              'DeleteRegKey HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\RainstarPocketLibrary"', 'SectionEnd']
+              'DeleteRegKey HKCU "' + uninstall_key + '"', 'SectionEnd']
     script.write_text("\n".join(lines) + "\n", encoding="utf-8")
     makensis = find_makensis()
     print("Building the installer with", makensis, flush=True)

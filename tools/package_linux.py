@@ -43,6 +43,11 @@ def main():
     with tarfile.open(output / (stem + ".tar.gz"), "w:gz") as archive:
         archive.add(bundle, arcname="Pocket Library")
     root = output / "deb-root"
+    # The maintainer people see is Malkuth Software (owner, 2026-10-27). The
+    # package name, its /usr/lib folder and the launcher keep earlier releases'
+    # rainstar-pocketlibrary, so apt upgrades the installed package in place
+    # instead of installing a second, conflicting one.
+    maintainer = "Malkuth Software <maintainer@malkuthsoft.com>"
     installed = root / "usr/lib/rainstar-pocketlibrary"
     shutil.copytree(bundle, installed)
     launcher = root / "usr/bin/rainstar-pocketlibrary"
@@ -62,14 +67,15 @@ def main():
     metadata = output / "debian/control"
     metadata.parent.mkdir()
     metadata.write_text("Source: rainstar-pocketlibrary\nSection: text\nPriority: optional\n"
-                        "Maintainer: Rainstar <noreply@rainstar.invalid>\n\n"
+                        "Maintainer: " + maintainer + "\n\n"
                         "Package: rainstar-pocketlibrary\nArchitecture: any\nDescription: Pocket Library, a native reading room of books\n", encoding="utf-8")
     binaries = [installed / "pocketlibrary"] + list(installed.glob("*.so*"))
     dependencies = subprocess.check_output(
         ["dpkg-shlibdeps", "-O", "-l" + str(installed), "--ignore-missing-info"] +
         ["-e" + str(binary) for binary in binaries], cwd=output, text=True).strip().removeprefix("shlibs:Depends=")
     control.write_text("Package: rainstar-pocketlibrary\nVersion: " + project_version() + "\nArchitecture: " + arch +
-        "\nMaintainer: Rainstar <noreply@rainstar.invalid>\nSection: text\nPriority: optional\nDepends: " +
+        "\nMaintainer: " + maintainer + "\nHomepage: https://github.com/malkuth-software/books"
+        "\nSection: text\nPriority: optional\nDepends: " +
         dependencies + ", libasound2t64\nDescription: A reading room of books, each set as a printed book\n", encoding="utf-8")
     subprocess.run(["dpkg-deb", "--root-owner-group", "--build", str(root), str(output / (stem + ".deb"))], check=True)
 
