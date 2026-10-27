@@ -63,6 +63,9 @@ jobs:
     needs: prepare
     env:
       GAMES_RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      # The harness tools read Pocket Library's names from its project file.
+      HARNESS_WORKSPACE: ${{ github.workspace }}
+      HARNESS_PROJECT: ${{ github.workspace }}/template_harness/projects/books.toml
     strategy:
       fail-fast: false
       matrix:
@@ -86,40 +89,51 @@ jobs:
         shell: ${{ matrix.shell }}
     steps:
       - uses: actions/checkout@v4
+      # The harness at the commit harness.lock pins, at template_harness/ inside
+      # this checkout (the product is its own workspace root).
+      - name: Read the harness pin
+        id: harness
+        shell: bash
+        run: |
+          echo "repository=$(sed -n 's/^repository = "\(.*\)"$/\1/p' harness.lock)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(sed -n 's/^commit = "\(.*\)"$/\1/p' harness.lock)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.harness.outputs.repository }}
+          ref: ${{ steps.harness.outputs.commit }}
+          path: template_harness
+          persist-credentials: false
+      - name: Verify the harness checkout
+        shell: bash
+        env:
+          PINNED: ${{ steps.harness.outputs.commit }}
+        run: test "$(git -C template_harness rev-parse HEAD)" = "$PINNED"
       # GUI.Forms lives in its own repository. It sits at gui_forms/ and the
-      # application builds three levels down (.build/native/app), the same layout
-      # as its own CI, so the compiler cache it publishes can match our objects.
+      # application builds three levels down (.build/native/app), the same depth
+      # as its own CI's tree, so the compiler cache it publishes can match our
+      # objects. The revision is TOOLKIT_REVISION in tools/package_common.py.
       - name: Fetch reviewed GUI.Forms source
         uses: actions/checkout@v4
         with:
-          repository: falseywinchnet/gui_forms
-          ref: 6fd0071a0f25a8d4d13661dfe61d1c93c5552e00
+          repository: malkuth-software/gui_forms
+          ref: e077f9d5a5117312e65e8c3b741c4edd24013d56
           path: gui_forms
+          persist-credentials: false
       - uses: actions/setup-python@v5
         if: runner.os == 'Windows'
         with:
           python-version: '3.14'
-      # GUI.Forms publishes the MSYS2 tree its cache was compiled with; restoring it
-      # avoids the MSYS2 mirrors and guarantees the compiler the cache needs.
+      # GUI.Forms publishes the MSYS2 CLANG64 tree its cache was compiled with.
+      # The harness restores it at the producer's path without the MSYS2 mirrors
+      # and puts msys2.cmd on PATH, so `shell: msys2 {0}` runs in it. There is no
+      # fallback: another compiler would neither match the cache nor satisfy
+      # GUI.Forms' LLVM 22.1.x check.
       - name: Restore GUI.Forms' Windows toolchain
-        id: msys
         if: runner.os == 'Windows'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python tools/restore_windows_toolchain.py
-      # Only when the published toolchain could not be restored.
-      - uses: msys2/setup-msys2@v2
-        if: runner.os == 'Windows' && steps.msys.outputs.restored != 'true'
-        with:
-          msystem: CLANG64
-          update: true
-          install: >-
-            mingw-w64-clang-x86_64-clang mingw-w64-clang-x86_64-lld
-            mingw-w64-clang-x86_64-llvm-tools mingw-w64-clang-x86_64-cmake
-            mingw-w64-clang-x86_64-ninja mingw-w64-clang-x86_64-python
-            mingw-w64-clang-x86_64-nsis mingw-w64-clang-x86_64-ccache
-            mingw-w64-clang-x86_64-winpthreads git
+        run: python template_harness/harness/windows_toolchain.py restore
       # Name the compiler as GUI.Forms' CI does. CMake otherwise picks cc.exe and
       # c++.exe: the same Clang, but different files to ccache, so none of the
       # published cache would match.

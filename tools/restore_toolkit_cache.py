@@ -25,10 +25,10 @@ ARCHIVES = {"windows-x64": "windows-x64", "macos-arm64": "macos-arm64",
             "linux-amd64": "linux-x64", "linux-arm64": "linux-arm64"}
 # SHA-256 of each archive in release build-<TOOLKIT_REVISION>.
 DIGESTS = {
-    "linux-arm64": "ff0c06afd5199ad09e7f678ad1aaf86ab9fb7639c46ab7a644d7569d6fc990e0",
-    "linux-x64": "560e96da0e67b190df2c157465c7422b12d29eafe3d930ebf5bb5736eae87de4",
-    "macos-arm64": "8a7aa93852703f9ce2b08f0a9b47448ba83f5ec8586c50cbf7bf3333b6a994b6",
-    "windows-x64": "f657724753cd6b2dd8bafd75e42156981210899897747e5e4c7d8a58c4f6ad25",
+    "linux-arm64": "65443b9035375c15e2703958afe052401470fe45ff834b1918fb247b2b50e8f0",
+    "linux-x64": "53546e08de59d6d33fc294f2d927aeea56e0d991ab30099601c453931af33094",
+    "macos-arm64": "fa2aad3c1fe492b5ab0550c3f075b2616cf7270bc3699175be4e93b9b527f63c",
+    "windows-x64": "af328c744efec15f2c9ae5e5294dce7f1e8357c37e6a4882dadbf30ef754a4a7",
 }
 RUNTIME = Path(".build/toolchain/llvm-22.1.8-macos14")
 
@@ -46,7 +46,7 @@ def restore(platform: str) -> str:
         return "no GUI.Forms cache is published for " + platform
     archive = Path("gui-forms-cache-" + name + ".tar.gz")
     tag = "build-" + TOOLKIT_REVISION
-    result = subprocess.run(["gh", "release", "download", tag, "--repo", "falseywinchnet/gui_forms",
+    result = subprocess.run(["gh", "release", "download", tag, "--repo", "malkuth-software/gui_forms",
                              "--pattern", archive.name, "--clobber"], check=False)
     if result.returncode != 0 or not archive.exists():
         return "release " + tag + " has no " + archive.name
@@ -73,7 +73,8 @@ def restore(platform: str) -> str:
 
 
 def prepare_runtime() -> None:
-    tools = Path("gui_forms/tools")
+    # The macOS runtime tools moved from GUI.Forms to the harness (GUI.Forms #408).
+    tools = Path("template_harness/harness")
     check = subprocess.run([sys.executable, str(tools / "macos_runtime_manifest.py"), str(RUNTIME)], check=False)
     if check.returncode != 0:
         print("Building the LLVM 22 runtime for macOS 14 from GUI.Forms' pinned source", flush=True)

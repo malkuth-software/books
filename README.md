@@ -28,6 +28,6 @@ The library is 433 MB of text kept in 85.7 MB, in parts: a base (the packing tab
 
 ## Building
 
-[`docs/BUILDING.md`](docs/BUILDING.md) and [`.github/workflows/applications.yml`](.github/workflows/applications.yml) are the recipe. The application links the pinned [GUI.Forms](https://github.com/falseywinchnet/gui_forms) for windows, text and audio, and builds with LLVM 22.1.8 on macOS, Windows and Linux. [AGENTS.md](AGENTS.md) is the working agreement for anyone, person or model, changing it.
+[`docs/BUILDING.md`](docs/BUILDING.md) and [`.github/workflows/applications.yml`](.github/workflows/applications.yml) are the recipe. The application links the pinned [GUI.Forms](https://github.com/malkuth-software/gui_forms) for windows, text and audio, and builds with LLVM 22.1.8 on macOS, Windows and Linux. [AGENTS.md](AGENTS.md) is the working agreement for anyone, person or model, changing it.
 
 Dedicated to the Holy One, Blessed be He, and to Christ, our King in Heaven. Crafted by Anthropic Claude General Reasoning Agents and OpenAI Codex General Reasoning Agents. Sponsor: Rainstar.

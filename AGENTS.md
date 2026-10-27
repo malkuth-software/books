@@ -75,7 +75,7 @@ control headless.
 
 [docs/BUILDING.md](docs/BUILDING.md) and `.github/workflows/applications.yml` are the
 recipe for the application and its packages. Release CI pins GUI.Forms
-`6fd0071a0f25a8d4d13661dfe61d1c93c5552e00` from `falseywinchnet/gui_forms` and follows
+`e077f9d5a5117312e65e8c3b741c4edd24013d56` (v0.2.1308) from `malkuth-software/gui_forms` and follows
 its LLVM 22.1.8 contract on every platform (macOS 14.0 Apple silicon with GUI.Forms'
 bundled runtime, Windows 10, Ubuntu 24.04), restoring that revision's published
 compiler cache. The main workflow is the release gate, and every green push to `main`

@@ -34,29 +34,37 @@ jobs:
         shell: ${{ matrix.shell }}
     steps:
       - uses: actions/checkout@v4
+      # The harness at the commit harness.lock pins, at template_harness/.
+      - name: Read the harness pin
+        id: harness
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "repository=$(sed -n 's/^repository = "\(.*\)"$/\1/p' harness.lock)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(sed -n 's/^commit = "\(.*\)"$/\1/p' harness.lock)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: runner.os == 'Windows'
+        with:
+          repository: ${{ steps.harness.outputs.repository }}
+          ref: ${{ steps.harness.outputs.commit }}
+          path: template_harness
+          persist-credentials: false
       - uses: actions/setup-python@v5
         if: runner.os == 'Windows'
         with:
           python-version: '3.14'
-      # GUI.Forms publishes the MSYS2 tree its cache was compiled with; restoring it
-      # avoids the MSYS2 mirrors and guarantees the compiler the cache needs.
+      # GUI.Forms' published MSYS2 CLANG64 tree (LLVM 22.1.8), restored by the
+      # harness without the MSYS2 mirrors; it puts msys2.cmd on PATH.
       - name: Restore GUI.Forms' Windows toolchain
-        id: msys
         if: runner.os == 'Windows'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python tools/restore_windows_toolchain.py
-      # Only when the published toolchain could not be restored.
-      - uses: msys2/setup-msys2@v2
-        if: runner.os == 'Windows' && steps.msys.outputs.restored != 'true'
-        with:
-          msystem: CLANG64
-          update: true
-          install: >-
-            mingw-w64-clang-x86_64-clang mingw-w64-clang-x86_64-lld
-            mingw-w64-clang-x86_64-llvm-tools mingw-w64-clang-x86_64-cmake
-            mingw-w64-clang-x86_64-ninja git
+          HARNESS_WORKSPACE: ${{ github.workspace }}
+          HARNESS_PROJECT: ${{ github.workspace }}/template_harness/projects/books.toml
+        run: |
+          test "$(git -C template_harness rev-parse HEAD)" = "${{ steps.harness.outputs.commit }}"
+          python template_harness/harness/windows_toolchain.py restore
       - name: Install macOS tools
         if: runner.os == 'macOS'
         run: brew install ninja
