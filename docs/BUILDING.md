@@ -16,6 +16,8 @@ GUI.Forms publishes a compiler cache from each tested main build as the prerelea
 
 The source integration uses public GUI.Forms APIs for native windows, input, presentation, text masks and audio. The selected development text and bar-transport APIs are source-only; an older installed SDK cannot replace this source dependency. The Pocket Library does not install or export an SDK. Apple framework adaptation is confined to GUI.Forms; the application and its adapters compile as C++.
 
+The quickest check that a workspace builds is `python3 scripts/smoke-build.py`, the template_harness bootstrap's smoke command. It configures `.build/native-<platform>/books-smoke` with `GAMES_BUILD_APPLICATION=OFF`: no GUI.Forms, no runtime assets and no library data. It builds the library core with the harness toolchain file and runs the dogfood, paper_engine and pocketlibrary_library tests.
+
 Prepare resources once with Python and FFmpeg (with libvorbis):
 
 ```sh
