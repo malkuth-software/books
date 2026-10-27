@@ -1,0 +1,15 @@
+# Line endings are fixed here, not by each machine's core.autocrlf, so files
+# hash the same on every host (the font and asset manifests record SHA-256s).
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+
+# Third-party licence texts kept byte for byte as published (some are CRLF);
+# assets/fonts/manifest.json records their digests.
+assets/fonts/OFL-*.txt -text
+
+*.ttf binary
+*.wav binary
+*.png binary
+*.jpg binary
+*.icns binary
