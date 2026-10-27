@@ -50,6 +50,9 @@ def copy_resources(build, toolkit, destination):
     # placed them (CI keeps them in a cached FETCHCONTENT_BASE_DIR).
     base = re.search(r"^FETCHCONTENT_BASE_DIR:PATH=(.+)$", cache, re.MULTILINE)
     fetched = Path(base.group(1)) if base else build / "_deps"
+    # A source SDK supplies miniaudio itself and points FetchContent at it.
+    override = re.search(r"^FETCHCONTENT_SOURCE_DIR_GUI_FORMS_MINIAUDIO:PATH=(.+)$", cache, re.MULTILINE)
+    miniaudio = Path(override.group(1)) if override else fetched / "gui_forms_miniaudio-src"
     entries = {
         "GUIForms.txt": toolkit / "LICENSE",
         "Unicode.txt": toolkit / "third_party/unicode/LICENSE.txt",
@@ -57,7 +60,7 @@ def copy_resources(build, toolkit, destination):
         "HarfBuzz.txt": toolkit / "third_party/harfbuzz/COPYING",
         "FreeType.txt": toolkit / "third_party/freetype/docs/FTL.TXT",
         "libunibreak.txt": toolkit / "third_party/libunibreak/LICENCE",
-        "miniaudio.txt": fetched / "gui_forms_miniaudio-src/LICENSE",
+        "miniaudio.txt": miniaudio / "LICENSE",
     }
     for name, source in entries.items():
         shutil.copy2(source, notices / name)
@@ -65,14 +68,19 @@ def copy_resources(build, toolkit, destination):
     if skia.is_dir():
         for name, source in {
             "Skia.txt": skia / "LICENSE",
-            "libpng.txt": skia / "third_party/externals/libpng/LICENSE",
-            "zlib.txt": skia / "third_party/externals/zlib/LICENSE",
             "Skia-FreeType.txt": skia / "third_party/externals/freetype/docs/FTL.TXT",
         }.items():
             shutil.copy2(source, notices / name)
-    # Ogg Vorbis is decoded by GUI.Forms' stx_vorbis with its embedded BFFT, and
-    # threads run on GUI.Forms' copy of threadpool_atomic_fast.
+    # Ogg Vorbis is decoded by GUI.Forms' stx_vorbis with its embedded BFFT;
+    # PNG and zlib go through its owned stx_png and stx_zlib (Skia is built
+    # without libpng and zlib), interpolation through stx_conv, and threads run
+    # on GUI.Forms' copy of threadpool_atomic_fast.
     for name, source in {
+        "stx_zlib.txt": toolkit / "stx_zlib/LICENSE",
+        "stx_zlib-puff.txt": toolkit / "stx_zlib/LICENSE-puff.txt",
+        "stx_zlib-zlib.txt": toolkit / "stx_zlib/LICENSE-zlib.txt",
+        "stx_png.txt": toolkit / "stx_png/LICENSE",
+        "stx_conv.txt": toolkit / "stx_conv/LICENSE",
         "stx_vorbis.txt": toolkit / "stx_vorbis/LICENSE",
         "BFFT.txt": toolkit / "stx_vorbis/third_party/bfft/LICENSE",
         "BFFT-provenance.json": toolkit / "stx_vorbis/third_party/bfft/provenance.json",
