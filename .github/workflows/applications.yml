@@ -15,9 +15,14 @@ on:
         default: false
 permissions:
   contents: read
+# A new push to a pull request cancels its older run. On main a run in progress
+# finishes, so the next merge does not cancel a release being built; the next
+# main run waits (GitHub keeps only the newest one waiting), and
+# tools/publish_tested_release.py publishes only the run whose commit is still
+# main's head.
 concurrency:
   group: applications-${{ github.head_ref || github.ref_name }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   changes:
     runs-on: ubuntu-24.04
