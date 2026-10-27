@@ -47,7 +47,7 @@ def main():
     # package name, its /usr/lib folder and the launcher keep earlier releases'
     # rainstar-pocketlibrary, so apt upgrades the installed package in place
     # instead of installing a second, conflicting one.
-    maintainer = "Malkuth Software <noreply@malkuth-software.invalid>"
+    maintainer = "Malkuth Software <maintainer@malkuthsoft.com>"
     installed = root / "usr/lib/rainstar-pocketlibrary"
     shutil.copytree(bundle, installed)
     launcher = root / "usr/bin/rainstar-pocketlibrary"
