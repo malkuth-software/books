@@ -65,6 +65,6 @@ Windows installer creation requires NSIS. Linux packaging requires patchelf and 
 
 `tools/smoke_package.py <packaged-executable>` creates temporary isolated saves, removes asset/library overrides, launches the real native window, checks a presented frame and closes through the UI scheduler. Linux CI runs it inside Xvfb. It has a 60-second timeout. This complements CTest and manual visual/gameplay checks.
 
-Every push to `main` that passes all four native application jobs publishes a release, `0.1.<run number>`; a `v<version>` tag in the `0.1` series publishes that version. The workflow publishes installers, archives and SHA-256 checksums only after all four native application jobs pass.
+Every push to `main` that passes all four native application jobs publishes a release, `0.2.<run number>`; a `v<version>` tag in the `0.2` series publishes that version. The series moved from 0.1 to 0.2 at the 2026-10-27 history reset, so every new release is above anything published before it. The workflow publishes installers, archives and SHA-256 checksums only after all four native application jobs pass.
 
 Sponsor: Rainstar
