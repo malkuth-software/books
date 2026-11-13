@@ -2,22 +2,35 @@
 // Windows Professional with no finding but W201 (an error refuses the theme; a warning
 // drops a declaration, and the look would no longer be PlaySuite's exactly), the
 // application's theme carries the package's rules beyond the base theme's, and a window
-// in the light scheme shows that theme with no fallback.
+// in the light scheme shows that theme with no fallback; and the shell's controls carry
+// the classes the sheet styles (the skin, the help link, the gloss tones).
+#include "collection.hpp"
+#include "help_book.hpp"
 #include "playsuite_theme.hpp"
+#include "suite.hpp"
 #include "test_paths.hpp"
 #include "gui_forms/application.hpp"
 #include "gui_forms/window.hpp"
 
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace gf = gui_forms;
 
 static void require(bool condition, const char* message) {
     if (!condition)
         throw std::runtime_error(message);
+}
+
+static bool has_class(const gf::Control& control, const std::string& name) {
+    const std::vector<std::string> names = control.classes.read();
+    const bool found = std::find(names.begin(), names.end(), name) != names.end();
+    return found;
 }
 
 int main() {
@@ -50,6 +63,20 @@ int main() {
             const gf::CompiledThemeRules& rules = (*theme).engine().rules();
             require(rules.rule_count() > rules.built_in_rule_count(), "the package's rules are there");
             require(!window.theme_fallback().has_value(), "no fallback in the light scheme");
+        }
+        {
+            const std::shared_ptr<games::Collection> shell =
+                gf::make_control<games::Collection>(gf::StableId("games.table"), false);
+            require(has_class(*shell, "skin-ivory"), "the shell takes the ivory skin class");
+            const std::shared_ptr<games::HelpGlyph> glyph =
+                gf::make_control<games::HelpGlyph>(gf::StableId("theme.help"), "?");
+            (*glyph).set_variant(games::HelpGlyphVariant::help_link);
+            require(has_class(*glyph, "help-glyph") && has_class(*glyph, "help-link"), "the help link's classes");
+            const std::shared_ptr<games::SuiteButton> button =
+                gf::make_control<games::SuiteButton>(gf::StableId("theme.gloss"), "Play", games::GlossTone::navy);
+            require(has_class(*button, "gloss") && has_class(*button, "navy"), "a gloss button's tone class");
+            (*button).set_tone(games::GlossTone::smoke);
+            require(has_class(*button, "smoke") && !has_class(*button, "navy"), "the tone class follows the tone");
         }
         created.application.reset();
         static_cast<void>(gf::Application::shutdown());

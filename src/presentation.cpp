@@ -1,14 +1,9 @@
 #include "presentation.hpp"
+#include "suite.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>
 namespace games {
-static gf::Color mix(gf::Color a, gf::Color b, double t) {
-    return gf::Color::rgba(static_cast<unsigned char>(a.red * (1 - t) + b.red * t),
-                           static_cast<unsigned char>(a.green * (1 - t) + b.green * t),
-                           static_cast<unsigned char>(a.blue * (1 - t) + b.blue * t),
-                           static_cast<unsigned char>(a.alpha * (1 - t) + b.alpha * t));
-}
 static void gradient(gf::Painter& p, gf::Rect r, gf::Color a, gf::Color b) {
     const gf::GradientStop stops[] = {{0, a}, {1, b}};
     p.fill_linear_gradient(r, {r.x, r.y}, {r.x, r.y + r.height}, stops);
@@ -21,95 +16,78 @@ gf::Color game_accent(int game) {
                                 gf::Color::rgba(243, 203, 100), gf::Color::rgba(192, 198, 142)};
     return colors[std::clamp(game, 0, 9)];
 }
+const char* skin_class(ButtonSkin skin) {
+    switch (skin) {
+    case ButtonSkin::ivory:
+        return "ivory";
+    case ButtonSkin::blue:
+        return "blue";
+    case ButtonSkin::mint:
+        return "mint";
+    case ButtonSkin::slate:
+        break;
+    }
+    return "slate";
+}
+const char* skin_subtree_class(ButtonSkin skin) {
+    switch (skin) {
+    case ButtonSkin::ivory:
+        return "skin-ivory";
+    case ButtonSkin::blue:
+        return "skin-blue";
+    case ButtonSkin::mint:
+        return "skin-mint";
+    case ButtonSkin::slate:
+        break;
+    }
+    return "skin-slate";
+}
+void set_skin_class(gf::Control& control, ButtonSkin skin) {
+    std::vector<std::string> names = control.classes.read();
+    std::vector<std::string> kept;
+    kept.reserve(names.size() + 1);
+    for (const std::string& name : names) {
+        if (name.rfind("skin-", 0) != 0)
+            kept.push_back(name);
+    }
+    kept.push_back(skin_subtree_class(skin));
+    control.classes = std::move(kept);
+}
 GameButton::GameButton(gf::StableId id, std::string label)
     : Button(std::move(id), std::move(label)) {
     font = gf::FontSpec{gf::FontRole::content, 14, 600, false, .1};
     use_mnemonic = false;
     content_padding = gf::Insets{9, 2, 9, 2};
+    classes = std::vector<std::string>{"game-button", skin_class(skin_)};
 }
 void GameButton::set_skin(ButtonSkin skin) {
+    if (skin_ == skin)
+        return;
     skin_ = skin;
+    classes = std::vector<std::string>{"game-button", skin_class(skin_)};
     invalidate(gf::Dirty::paint);
 }
-void GameButton::on_paint(gf::Painter& p, gf::Rect) {
-    gf::Rect b = client_rectangle();
-    gf::Rect r{1, 1, b.width - 2, b.height - 3};
-    bool down = pressed_visual(), hot = hovered_visual(), chosen = selected.read(),
-         light = skin_ == ButtonSkin::ivory || skin_ == ButtonSkin::blue;
-    gf::Color top = light ? gf::Color::rgba(247, 246, 235) : gf::Color::rgba(56, 79, 99),
-              bottom = light ? gf::Color::rgba(212, 218, 202) : gf::Color::rgba(30, 49, 69),
-              border = light ? gf::Color::rgba(119, 145, 136) : gf::Color::rgba(82, 107, 126),
-              ink = light ? gf::Color::rgba(39, 65, 60) : gf::Color::rgba(226, 236, 242);
-    if (skin_ == ButtonSkin::blue) {
-        top = gf::Color::rgba(244, 251, 255);
-        bottom = gf::Color::rgba(197, 223, 241);
-        border = gf::Color::rgba(113, 157, 191);
-        ink = gf::Color::rgba(31, 81, 120);
-    }
-    if (skin_ == ButtonSkin::mint) {
-        top = gf::Color::rgba(77, 109, 102);
-        bottom = gf::Color::rgba(39, 68, 66);
-        border = gf::Color::rgba(125, 161, 137);
-    }
-    if (chosen) {
-        top = gf::Color::rgba(235, 212, 153);
-        bottom = gf::Color::rgba(189, 150, 82);
-        border = gf::Color::rgba(130, 100, 49);
-        ink = gf::Color::rgba(45, 49, 49);
-    }
-    if (hot) {
-        top = mix(top, gf::Color::rgba(245, 246, 229), .12);
-        border = mix(border, gf::Color::rgba(181, 220, 225), .55);
-    }
-    if (down)
-        std::swap(top, bottom);
-    if (!enabled.read()) {
-        top = mix(top, bottom, .5);
-        ink = mix(ink, bottom, .55);
-        border = mix(border, bottom, .4);
-    }
-    if (!down)
-        p.draw_box_shadow(r, 5, {0, 2}, 2, 0, gf::Color::rgba(0, 8, 17, 70));
-    p.save();
-    p.clip_rounded_rect(r, 5);
-    gradient(p, r, top, bottom);
-    p.restore();
-    p.stroke_rounded_rect(r, 5, border, 1);
-    p.draw_line({r.x + 5, r.y + 1}, {r.x + r.width - 5, r.y + 1},
-                gf::Color::rgba(255, 255, 255,
-                                down    ? 20
-                                : light ? 195
-                                        : 53),
-                1);
-    p.draw_line({r.x + 4, r.y + r.height - 1}, {r.x + r.width - 4, r.y + r.height - 1},
-                gf::Color::rgba(6, 20, 35, light ? 30 : 90), 1);
-    paint_button_content(p, r, text.read(), ink, {down ? 1.0 : 0, down ? 1.0 : 0}, chosen);
-    if (focus_cue_visible())
-        p.stroke_rounded_rect(
-            {4, 4, b.width - 8, b.height - 9}, 3,
-            light ? gf::Color::rgba(45, 103, 131) : gf::Color::rgba(170, 216, 233), 1);
+gf::AnatomyStateSet GameButton::anatomy_states() const {
+    // Chosen (selected) is the theme's :checked: gold whatever the skin.
+    gf::AnatomyStateSet states = gf::Button::anatomy_states();
+    if (selected.read())
+        states.insert(gf::AnatomyState::checked);
+    return states;
 }
-std::shared_ptr<const gf::Theme> games_theme(ButtonSkin skin) {
-    gf::ThemeDefinition theme = gf::windows_professional_theme_definition();
-    theme.id = "games-authored-" + std::to_string(static_cast<int>(skin));
-    bool light = skin == ButtonSkin::blue || skin == ButtonSkin::ivory;
-    theme.structure.typography.control = {gf::FontRole::content, 14, 400, false};
-    theme.structure.typography.field = {gf::FontRole::content, 16, 400, false};
-    theme.compatibility.text = light ? gf::Color::rgba(35, 63, 82) : gf::Color::rgba(229, 235, 241);
-    theme.compatibility.border =
-        light ? gf::Color::rgba(119, 156, 181) : gf::Color::rgba(87, 117, 138);
-    for (std::size_t i = 0; i < gf::control_surface_state_count; ++i) {
-        gf::ControlVisualRecipe& editor =
-            theme.roles[static_cast<std::size_t>(gf::ControlVisualRole::editor)].ordinary[i];
-        editor.material.fills = {gf::MaterialFillLayer::solid(light ? gf::Color::rgba(252, 253, 250)
-                                                                    : gf::Color::rgba(12, 27, 43))};
-        editor.material.corner_radius = 4;
-        editor.material.border = gf::MaterialBorder{
-            light ? gf::Color::rgba(115, 153, 184) : gf::Color::rgba(104, 147, 171), 1};
-        editor.text = light ? gf::Color::rgba(26, 59, 83) : gf::Color::rgba(239, 240, 222);
-        editor.focus_ring = gf::Color::rgba(140, 192, 222);
-    }
-    return gf::Theme::create(std::move(theme));
+void GameButton::on_paint(gf::Painter& p, gf::Rect) {
+    const gf::Rect b = client_rectangle();
+    const gf::Rect r{1, 1, b.width - 2, b.height - 3};
+    const gf::AnatomyStateSet states = anatomy_states();
+    const bool down = pressed_visual();
+    // The face's rim was a 1-point stroke centred on r (radius 5) and its highlight and
+    // lowlight lines a point inside it; as the theme's border and first keyline ring,
+    // inside the part, that is r grown by half a point.
+    paint_skin_part(p, *this, gf::PartRole::face, outset(r, .5), states, 5.5);
+    const ButtonContentInk ink{gf::ControlVisualRole::button, states, std::nullopt};
+    paint_button_content(p, r, text.read(), ink, {down ? 1.0 : 0, down ? 1.0 : 0}, selected.read());
+    // The focus ring was a 1-point stroke centred on {4, 4, w - 8, h - 9}, radius 3.
+    if (focus_cue_visible())
+        paint_skin_part(p, *this, gf::PartRole::focus, {3.5, 3.5, b.width - 7, b.height - 8}, states, 3.5);
 }
 static double polygon_scale = 1;
 void set_polygon_scale(double device_scale) {

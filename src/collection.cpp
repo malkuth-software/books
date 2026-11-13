@@ -13,7 +13,7 @@ void repaint_tree(gf::Control& control) {
 } // namespace
 Collection::Collection(gf::StableId id, bool dev) : Control(std::move(id)) {
     modules_.dev = dev;
-    set_theme_override(games_theme(ButtonSkin::ivory));
+    set_skin_class(*this, ButtonSkin::ivory);
 }
 Collection::~Collection() = default;
 void Collection::initialize_control_tree() {
@@ -29,7 +29,7 @@ void Collection::initialize_control_tree() {
     gf::on(model_.settings.invoked(), *this, &Collection::toggle, 3);
     help_link_ = gf::make_control<HelpGlyph>(gf::StableId("collection.help"), "?");
     (*help_link_).font = gf::FontSpec{gf::FontRole::content, 32, 700, false};
-    (*help_link_).set_ink(gf::Color::rgba(240, 192, 84));
+    (*help_link_).set_variant(HelpGlyphVariant::help_link);
     (*help_link_).accessible_name = "Help (H)";
     (*help_link_).set_paint_plane(gf::PaintPlane::overlay);
     gf::on((*help_link_).clicked(), *this, &Collection::clicked_help);

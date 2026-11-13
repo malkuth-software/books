@@ -272,3 +272,53 @@ The help document and the Settings screen are now printed on a generated paper t
    weight; greyscale antialiasing (F007) composes correctly over paper where subpixel
    rendering would fringe. A `Painter` or text-mask option for linear-light compositing
    would let both applications share it. PlaySuite carries no stand-in.
+
+## Theme gaps for PlaySuite's exact look (found migrating to 0.5, 2026-11-08)
+
+PlaySuite's look is now the theme package `themes/playsuite` (`tools/make_theme.py`). The
+controls paint stock parts through the theme; these are what the 0.5 theme language and
+part painting cannot yet say, so the look differs from the painted one or the code still
+draws it. Each names the feature that would close it.
+
+1. **App-defined marks.** The gloss glyphs (back, play, music, sound, motion, more,
+   settings, the red slash of a switched-off master) and the settings box's tick are
+   still stroked in code in the gloss ink, which the code repeats beside the sheet's
+   roles. Needed: a program-registered mark vocabulary (a mark name and its path,
+   drawn in the part's glyph-color), or a mask-image mark the theme can colour.
+2. **Line geometry inside a face.** paint_gloss's shine was a one-unit line two units
+   under the top, kept `radius * .6 + 2` in from each end and faded in over
+   `min(10 units, a quarter of its length)`; GameButton's highlight and lowlight were kept
+   5 and 4 units in. Keylines (used now) run the face's full width with no fade. Needed:
+   either a keyline inset and end fade (`keylines: <colour> inset 4.4px fade 10px`), or
+   sized and positioned gradient layers (`background-size: calc(100% - 8.8px) 1px`; today
+   a gradient ignores sizes and only `100% 100%` is admitted for two lengths, and an
+   expression mixing percent and px is refused).
+3. **Centred strokes.** The painters stroked rims and rings centred on a rect; a theme
+   border lies inside the part. The controls pass the rect grown by half the stroke,
+   which is exact for rings and rims but moves the gloss shine half a unit up (its row
+   counts from the grown edge), and the unchecked and checked settings box need
+   different bounds because their rims differ (1.5 and 1). Needed: `border-position:
+   center` (or `outline` on parts, below), so a part's bounds stay the path.
+4. **Outline on parts.** `outline` and `outline-offset` are admitted on a control only
+   (W107), so each focus ring is a separate `focus` part with a border, placed by the
+   control. Needed: outline on parts, so the ring belongs to the face it surrounds.
+5. **One look in every scheme.** A theme with no variant for the window's scheme falls
+   back to GUI.Forms in that scheme, so PlaySuite forces the light scheme with a window
+   presentation override. Needed: a `color-scheme: only light` (CSS's `only`) that keeps
+   the theme in every scheme.
+6. **Procedural materials.** The shelf's wood, the paper sheet's tile, the felt and the
+   box art are drawn by PlaySuite's own engines and stay canvas art. Needed only if
+   themes should restyle them: program-registered paint sources a background can name.
+7. **Several text shadows, and emboss.** Sudoku's pad numerals draw a highlight and a
+   shadow under the digit and a radial glow behind it; text-shadow is one shadow, on a
+   control. Needed: up to four text shadows (as box-shadow) and `radial-gradient` faces
+   for a button part.
+8. **Live tint.** Zen Construction fades its HUD labels per frame by writing `fore_color`;
+   that stays code. A theme transition cannot follow a value the game computes. Needed:
+   nothing for the theme; recorded so that fore_color stays admitted for live values.
+9. **Fonts beside colours.** The skinned controls keep their FontSpec in code (sizes,
+   weights, the 0.1 and 0.2 letter spacing in em) because a part's font comes from the
+   control; the sheet gives the skins' default label and editor fonts only. Needed:
+   `font-*` and `letter-spacing` on `::part(label)`, so a class can carry a button's type.
+10. **Mint skin subtree.** games_theme had no mint variant (mint was a button skin
+    only); the sheet keeps `.skin-mint` with the dark values for symmetry. No toolkit need.

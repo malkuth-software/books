@@ -2,6 +2,7 @@
 #include "help_content.hpp"
 #include "game_module.hpp"
 #include "presentation.hpp"
+#include "suite.hpp"
 #include <algorithm>
 #include "stable_ids.hpp"
 namespace games {
@@ -10,7 +11,7 @@ std::shared_ptr<gf::Label> front_line(const std::string& id, std::string_view te
     std::shared_ptr<gf::Label> label =
         gf::make_control<gf::Label>(games::stable_id("help.front." + id), std::string(text));
     (*label).font = gf::FontSpec{gf::FontRole::content, 16, weight, false};
-    (*label).fore_color = gf::Color::rgba(42, 38, 24);
+    (*label).classes = std::vector<std::string>{"help-text"};
     (*label).text_wrapping = gf::TextWrapping::word;
     return label;
 }
@@ -18,6 +19,7 @@ class TopicHeading final : public gf::Button {
   public:
     TopicHeading(gf::StableId id, std::string title) : Button(std::move(id), std::move(title)) {
         font = gf::FontSpec{gf::FontRole::content, 18, 600, false};
+        classes = std::vector<std::string>{"topic-heading"};
         accessible_name = text.read();
         // A disclosure: assistive technology hears whether its topic is open.
         expanded_state = false;
@@ -26,32 +28,76 @@ class TopicHeading final : public gf::Button {
         return expanded_state.read().value_or(false);
     }
     void on_paint(gf::Painter& p, gf::Rect) override {
+        // themes/playsuite colours the parts (button.topic-heading): the face, the
+        // "+" or "-" as secondary text (muted-color) and the title.
         const gf::Rect r = client_rectangle();
-        p.fill_rect(r, hovered_visual() ? gf::Color::rgba(236, 226, 156)
-                                        : gf::Color::rgba(244, 235, 175));
-        p.draw_text_utf8({9, 25}, expanded() ? "−" : "+", font.read(), gf::Color::rgba(66, 58, 33));
-        p.draw_text_utf8({32, 25}, text.read(), font.read(), gf::Color::rgba(42, 38, 24));
+        const gf::AnatomyStateSet states = anatomy_states();
+        paint_skin_part(p, *this, gf::PartRole::face, r, states, std::nullopt);
+        const gf::FontSpec f = font.read();
+        paint_line(p, expanded() ? "−" : "+", gf::PartTextTone::secondary, {9, 25}, states, f);
+        paint_line(p, text.read(), gf::PartTextTone::ordinary, {32, 25}, states, f);
+        // The focus outline was a 1-point stroke centred on {1, 1, w - 2, h - 2}.
         if (focus_cue_visible())
-            p.stroke_rect({1, 1, r.width - 2, r.height - 2}, gf::Color::rgba(110, 91, 37), 1);
+            paint_skin_part(p, *this, gf::PartRole::focus, outset({1, 1, r.width - 2, r.height - 2}, .5), states,
+                            std::nullopt);
+    }
+
+  private:
+    void paint_line(gf::Painter& p, std::string_view words, gf::PartTextTone tone, gf::Point baseline,
+                    gf::AnatomyStateSet states, gf::FontSpec f) const {
+        const gf::Size size = p.measure_text_utf8(words, f);
+        gf::PartPaint line{};
+        line.role = gf::PartRole::label;
+        line.states = states;
+        line.family = gf::ControlVisualRole::button;
+        line.text = words;
+        line.font = f;
+        line.tone = tone;
+        line.measured_text = size;
+        gf::paint_text_part_at(p, *this, line, baseline, size.width);
     }
 };
 } // namespace
 HelpGlyph::HelpGlyph(gf::StableId id, std::string glyph) : Button(std::move(id), std::move(glyph)) {
     font = gf::FontSpec{gf::FontRole::content, 26, 600, false};
+    classes = std::vector<std::string>{"help-glyph"};
 }
-void HelpGlyph::set_ink(gf::Color ink) {
-    ink_ = ink;
-    invalidate(gf::Dirty::paint);
+void HelpGlyph::set_variant(HelpGlyphVariant variant) {
+    std::vector<std::string> names{"help-glyph"};
+    if (variant == HelpGlyphVariant::help_link)
+        names.push_back("help-link");
+    else if (variant == HelpGlyphVariant::card_mark)
+        names.push_back("card-mark");
+    classes = std::move(names);
 }
 void HelpGlyph::on_paint(gf::Painter& p, gf::Rect) {
+    // themes/playsuite colours the glyph (button.help-glyph and its variants): the
+    // label in its ink, lit when hovered, with a soft dark text-shadow that keeps it
+    // readable over bright game art, and the underline mark in the ink (glyph-color).
     const gf::Rect r = client_rectangle();
-    const gf::Size size = p.measure_text_utf8(text.read(), font.read());
+    const gf::FontSpec f = font.read();
+    const gf::Size size = p.measure_text_utf8(text.read(), f);
     const gf::Point at{(r.width - size.width) * .5, (r.height - size.height) * .5 + size.height * .8};
-    // A soft dark edge keeps the glyph readable over bright game art.
-    p.draw_text_utf8({at.x + 1, at.y + 1.5}, text.read(), font.read(), gf::Color::rgba(0, 0, 0, 110));
-    p.draw_text_utf8(at, text.read(), font.read(), hovered_visual() ? gf::Color::rgba(255, 224, 140) : ink_);
-    if (hovered_visual() || focus_cue_visible())
-        p.draw_line({8, r.height - 3}, {r.width - 8, r.height - 3}, ink_, 1);
+    const gf::AnatomyStateSet states = anatomy_states();
+    gf::PartPaint glyph{};
+    glyph.role = gf::PartRole::label;
+    glyph.states = states;
+    glyph.family = gf::ControlVisualRole::link;
+    glyph.text = text.read();
+    glyph.font = f;
+    glyph.measured_text = size;
+    gf::paint_text_part_at(p, *this, glyph, at, size.width);
+    // The underline was a 1-point line centred on y = h - 3 from x 8 to w - 8: the
+    // underline mark's rule lies along the bottom of its box.
+    if (hovered_visual() || focus_cue_visible()) {
+        gf::PartPaint rule{};
+        rule.role = gf::PartRole::glyph;
+        rule.bounds = {8, 0, r.width - 16, r.height - 2.5};
+        rule.states = states;
+        rule.family = gf::ControlVisualRole::link;
+        rule.mark = gf::PartMark::underline;
+        gf::paint_part(p, *this, rule);
+    }
 }
 HelpPages::HelpPages(gf::StableId id) : ScrollableControl(std::move(id)) {
     auto_scroll = true;
@@ -68,7 +114,7 @@ void HelpPages::add_topic(int entry, std::string topic, std::string title,
     std::shared_ptr<gf::Label> label = gf::make_control<gf::Label>(
         games::stable_id("help.body." + key), std::string(body));
     (*label).font = gf::FontSpec{gf::FontRole::content, 17, 400, false};
-    (*label).fore_color = gf::Color::rgba(42, 38, 24);
+    (*label).classes = std::vector<std::string>{"help-text"};
     (*label).text_wrapping = gf::TextWrapping::word;
     (*label).visible = false;
     (*heading).set_paint_plane(gf::PaintPlane::overlay);
@@ -203,7 +249,7 @@ void HelpPages::on_key_bubble(gf::KeyEvent& e) {
 }
 HelpBook::HelpBook(gf::StableId id) : Control(std::move(id)) {
     set_paint_plane(gf::PaintPlane::overlay);
-    set_theme_override(games_theme(ButtonSkin::ivory));
+    set_skin_class(*this, ButtonSkin::ivory);
 }
 void HelpBook::initialize_control_tree() {
     pages_ = gf::make_control<HelpPages>(gf::StableId("help.pages"));

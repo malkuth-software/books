@@ -74,8 +74,7 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
 - **STXlib boundary types:** none consumed yet. When public signatures move to STXlib's owned span, string or
   result types (A2), the LiveSurface lease (`pixels()`), `load_bgra32_premultiplied` and the text-mask call
   sites follow.
-- **Shell parity with PlaySuite:** the shell is still a copy. PlaySuite's later shell work (the skinned controls the theme
-  package styles, .form window, held keys, business card, shelf glide) is not carried over. That is a product choice, not a
+- **Shell parity with PlaySuite:** the shell is still a copy. PlaySuite's later shell work (.form window, held keys, business card, shelf glide) is not carried over. That is a product choice, not a
   conformance need.
 - **Harness:** template_harness main must take `claude/csm-ccache-pch-main` first (owner prerequisite).
 
@@ -118,9 +117,11 @@ Tests that should cover it:
   tools/make_theme.py (byte for byte; `make_theme.py --check` passes here), `gui_forms_add_theme` on the
   pocketlibrary target, and main creating the application with the package over Windows Professional (a
   refusal reported, then the base theme) and forcing the light scheme per window, as PlaySuite's main does.
-  The sheet's skin rules (`.skin-*`, `gloss`) style PlaySuite's reworked shell controls; Pocket's shell copy
-  still paints those with its own C++ painters (`games_theme`), so until that shell work is carried over the
-  package changes the stock controls (search field, check boxes, sliders) and the C++-painted parts look as
-  before. Check by eye against PlaySuite.
+  The shell's skinned parts take the sheet's rules as PlaySuite's do: PlaySuite's shell work from 82906c2
+  is carried over (the shell, the help book and the settings controls carry skin-*, gloss, help-glyph,
+  setting and help-text classes and paint their parts through the theme; games_theme and
+  set_theme_override are gone; docs/TOOLKIT_REQUESTS.md lists the theme gaps). Not carried: the .form window
+  and Collection::set_development (PlaySuite's form-made shell), the card-back choice and the business card
+  (PlaySuite only). Check the look by eye against PlaySuite.
 - The 51 accessors that delete their rvalue overload can refuse a call on a temporary; only a compile shows
   these.
