@@ -85,8 +85,10 @@ endif()
 add_executable(audio_policy_tests tests/audio_policy_tests.cpp)
 target_link_libraries(audio_policy_tests PRIVATE game_audio_adapters)
 add_test(NAME audio_policy COMMAND audio_policy_tests)
-# PlaySuite's theme package compiles over Windows Professional with no finding but W201.
+# PlaySuite's theme package compiles over Windows Professional with no finding but W201
+# and W402; the shell it then builds reads the runtime assets (fonts, help text).
 add_executable(playsuite_theme_tests tests/playsuite_theme_tests.cpp)
 target_link_libraries(playsuite_theme_tests PRIVATE game_ui)
 gui_forms_add_theme(playsuite_theme_tests themes/playsuite FUNCTION playsuite_theme NAMESPACE games)
 add_test(NAME playsuite_theme COMMAND playsuite_theme_tests)
+set_tests_properties(playsuite_theme PROPERTIES ENVIRONMENT "GAMES_ASSET_DIR=${GAMES_RUNTIME_ASSET_DIR}")
