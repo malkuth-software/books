@@ -40,7 +40,8 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
      - new test: tests/routed_input_tests.cpp (ctest `routed_input`).
    - **Removed `Control::set_child_index`** (cp28): `set_child_index_from_top(id, 0)`.
    - **Application-first main:**
-     - `Application::run` is a member, so main calls `Application::create` (GUI.Forms' default theme), builds
+     - `Application::run` is a member, so main calls `Application::create` (GUI.Forms' default theme for now;
+       PlaySuite's theme is still to carry over), builds
        the window with the application, and runs it;
      - then it releases the run state, the root and the application, and calls `Application::shutdown()`.
    - **theme.hpp:** no file needs it (no complete Theme use outside headers that reach it).
@@ -70,8 +71,8 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
 - **STXlib boundary types:** none consumed yet. When public signatures move to STXlib's owned span, string or
   result types (A2), the LiveSurface lease (`pixels()`), `load_bgra32_premultiplied` and the text-mask call
   sites follow.
-- **Shell parity with PlaySuite:** the shell is still a copy. PlaySuite's later shell work (theme package,
-  .form window, held keys, business card, shelf glide) is not carried over. That is a product choice, not a
+- **Shell parity with PlaySuite:** the shell is still a copy. PlaySuite's later shell work (the theme package,
+  which Pocket Library should take (see Risks), .form window, held keys, business card, shelf glide) is not carried over. That is a product choice, not a
   conformance need.
 - **Harness:** template_harness main must take `claude/csm-ccache-pch-main` first (owner prerequisite).
 
@@ -109,8 +110,10 @@ Tests that should cover it:
   identifiers, property setters, getters of property cells) and by the PlaySuite cherry-picks. A cell read
   spelled as a call on a product-held control, and not caught by the sweep, shows only at compile time.
   The same goes for a signature that changed type but kept its name.
-- **Default theme.** main uses `ApplicationConfig{}`. At v0.2.1308, Pocket Library ran on that version's
-  default look. If the 0.6 default base differs, the shell's stock controls (the search field, check boxes,
-  sliders) change look. Name the base (`windows_professional`, as PlaySuite does) if the owner wants that look.
+- **Theme: still to do.** Pocket Library should use PlaySuite's theme (the package in PlaySuite's
+  themes/playsuite, `games::playsuite_theme()`), as PlaySuite does for its capsule and help. This branch does not
+  have it yet: main uses `ApplicationConfig{}`, GUI.Forms' default look. Carrying it over means PlaySuite's
+  themes/playsuite, src/playsuite_theme.*, tools/make_theme.py and the `gui_forms_add_theme` build step (PlaySuite
+  82906c2), then passing the package in `ApplicationConfig::theme.packages` as PlaySuite's main does.
 - The 51 accessors that delete their rvalue overload can refuse a call on a temporary; only a compile shows
   these.
