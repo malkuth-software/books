@@ -34,10 +34,13 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
      - `on_detaching_from_window(gf::SurfaceRoot&)`.
    - **On_key and on_pointer are already gone at 96d3696** (cp29, GUI.Forms 56b6627ea), although the brief
      listed them as still to come:
-     - the view derives from `games::RoutedInput<gf::Control>` (src/routed_input.hpp, shared with PlaySuite),
-       which rebuilds the routed event from each raiser's arguments for `handle_pointer` / `handle_key`;
-     - 1 `on_key` and 1 `on_pointer` override moved, and the `on_key_bubble` forwarder calls `handle_key`;
-     - new test: tests/routed_input_tests.cpp (ctest `routed_input`).
+     - option C (owner, provisional), as in PlaySuite: the view handles input in GUI.Forms' raisers directly
+       (on_mouse_down, on_mouse_move, on_mouse_wheel, on_mouse_leave, on_key_down). Every action is on the
+       press, so there are no clicks or drags to move; hover clears on leave;
+     - keys bubbling from the search field (`on_key_bubble`) take the same handling through
+       `games::key_arguments_of` (src/key_arguments.hpp, as in PlaySuite);
+     - `ControlStyles::opaque` is gone at 96d3696 (audit A17) and is no longer set;
+     - new test: books/pocketlibrary/tests/view_input_tests.cpp (ctest `pocketlibrary_view_input`).
    - **Removed `Control::set_child_index`** (cp28): `set_child_index_from_top(id, 0)`.
    - **Application-first main:**
      - `Application::run` is a member, so main calls `Application::create` (GUI.Forms' default theme for now;
@@ -98,7 +101,7 @@ Build every target before ctest (AGENTS.md: a `pocketlibrary`-only build leaves 
 portable core (`-DGAMES_BUILD_APPLICATION=OFF`) is unaffected by this branch.
 
 Tests that should cover it:
-- routed_input;
+- pocketlibrary_view_input;
 - pocketlibrary_view_contract (the real view headless);
 - pocketlibrary_library, audio_policy, dogfood;
 - the native smoke `pocketlibrary --smoke` (the Application-first main);
