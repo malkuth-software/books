@@ -28,6 +28,7 @@
 #include <system_error>
 #include <thread>
 #include <vector>
+#include "stable_ids.hpp"
 
 namespace kit {
 namespace gf = gui_forms;
@@ -168,7 +169,7 @@ template <class View, class ViewOptions>
 int run_view_contract(const char* name, const ViewOptions& view_options, const ContractOptions& options) {
     try {
         contract_isolate_saves(name);
-        std::shared_ptr<View> view = gf::make_control<View>(gf::StableId(name), view_options);
+        std::shared_ptr<View> view = gf::make_control<View>(games::stable_id(name), view_options);
         (*view).set_cabinet(true, false, false, true);
         gf::Window window(view, {1180, 800});
         window.set_active(true);

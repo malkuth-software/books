@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include "stable_ids.hpp"
 namespace games {
 namespace {
 constexpr gf::Color rgb(int r, int g, int b, int a = 255) {
@@ -26,9 +27,10 @@ SettingSlider::SettingSlider(gf::StableId id) : TrackBar(std::move(id)) {
 }
 void SettingSlider::on_paint(gf::Painter& p, gf::Rect) {
     const gf::Rect b = client_rectangle();
-    // TrackBar maps the pointer across its width less ten points at each end.
-    constexpr double inset = 10;
-    const double width = std::max(0.0, b.width - inset * 2), cy = b.height * .5;
+    // TrackBar maps the pointer linearly across value_span_bounds(), so the groove and
+    // the knob are placed on that span.
+    const gf::Rect span = value_span_bounds();
+    const double inset = span.x, width = span.width, cy = span.y + span.height * .5;
     const double ratio = normalized_value();
     const gf::Rect groove{inset - 3, cy - 3, width + 6, 6};
     p.fill_rounded_rect(groove, 3, rgb(226, 214, 166));
@@ -80,7 +82,7 @@ SettingsPage::SettingsPage(gf::StableId id) : ScrollableControl(std::move(id)) {
 std::shared_ptr<gf::Label> SettingsPage::text_label(const std::string& text, double size,
                                                     int weight) {
     std::shared_ptr<gf::Label> label = gf::make_control<gf::Label>(
-        gf::StableId("settings." + std::to_string(built_) + ".label." +
+        games::stable_id("settings." + std::to_string(built_) + ".label." +
                      std::to_string(children().size())),
         text);
     (*label).font = gf::FontSpec{gf::FontRole::content, size, static_cast<std::uint16_t>(weight), false};
@@ -98,7 +100,7 @@ std::shared_ptr<gf::Label> SettingsPage::heading(const std::string& text) {
 }
 std::shared_ptr<gf::CheckBox> SettingsPage::check(const std::string& key, const std::string& text) {
     std::shared_ptr<gf::CheckBox> box = gf::make_control<SettingCheck>(
-        gf::StableId("settings." + std::to_string(built_) + ".check." + key), text);
+        games::stable_id("settings." + std::to_string(built_) + ".check." + key), text);
     // The masters' commands or the game decide; the box shows what they decided.
     (*box).auto_check = false;
     (*box).font = gf::FontSpec{gf::FontRole::content, 16, 600, false};
@@ -111,7 +113,7 @@ std::shared_ptr<SettingSlider> SettingsPage::slider(const std::string& key,
                                                     const std::string& name, double minimum,
                                                     double maximum, double step) {
     std::shared_ptr<SettingSlider> bar = gf::make_control<SettingSlider>(
-        gf::StableId("settings." + std::to_string(built_) + ".slider." + key));
+        games::stable_id("settings." + std::to_string(built_) + ".slider." + key));
     (*bar).set_range(minimum, maximum);
     (*bar).small_change = step;
     (*bar).large_change = std::max(step, (maximum - minimum) / 5);
@@ -184,7 +186,7 @@ void SettingsPage::build(CommandSource* game, const std::string& game_title) {
                 row.lead = text_label(s.label, 16, 600);
                 for (std::size_t k = 0; k < s.choices.size(); ++k) {
                     std::shared_ptr<SuiteButton> chip = gf::make_control<SuiteButton>(
-                        gf::StableId("settings." + std::to_string(built_) + ".chip." + key + "." +
+                        games::stable_id("settings." + std::to_string(built_) + ".chip." + key + "." +
                                      std::to_string(k)),
                         s.choices[k], GlossTone::chrome);
                     (*chip).set_radius(15);

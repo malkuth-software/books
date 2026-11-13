@@ -1,5 +1,6 @@
 #include "suite_model.hpp"
 #include <cmath>
+#include "stable_ids.hpp"
 namespace games {
 SuiteModel::SuiteModel() {
     settings.set_checked(false);
@@ -45,7 +46,7 @@ std::shared_ptr<SuiteButton> make_master_switch(const std::string& prefix, int w
         {"Settings", Glyph::settings, SwitchLook::lit_when_on, "Settings", "Settings"}};
     const Look& look = looks[which];
     std::shared_ptr<SuiteButton> button =
-        gf::make_control<SuiteButton>(gf::StableId(prefix + look.name), "", GlossTone::smoke);
+        gf::make_control<SuiteButton>(games::stable_id(prefix + look.name), "", GlossTone::smoke);
     (*button).set_glyph(look.glyph);
     (*button).set_radius(SuiteButton::round);
     (*button).set_switch(look.look, look.on, look.off);

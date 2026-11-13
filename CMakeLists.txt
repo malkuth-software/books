@@ -45,12 +45,16 @@ elseif(GAMES_BUILD_APPLICATION)
   set(GUI_FORMS_AUDIO_VORBIS_BACKEND stx CACHE STRING "" FORCE)
   set(GUI_FORMS_BUILD_TEXT_MASKS ON CACHE BOOL "" FORCE)
   set(GUI_FORMS_ENABLE_HARFBUZZ_TEXT ON CACHE BOOL "" FORCE)
-  if(WIN32)
-    set(GUI_FORMS_ENABLE_SKIA OFF CACHE BOOL "" FORCE)
-  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # Every host draws with GUI.Forms' CPU Skia (built from the pinned stx); the Win32
+  # host requires it since stage SK3.
+  set(GUI_FORMS_ENABLE_SKIA ON CACHE BOOL "" FORCE)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(GUI_FORMS_ENABLE_LINUX_HOST ON CACHE BOOL "" FORCE)
   endif()
   add_subdirectory("${GAMES_TOOLKIT_SOURCE_DIR}" toolkit EXCLUDE_FROM_ALL)
+  # gui_forms_add_theme reads GUI_FORMS_THEME_EMBED_SCRIPT, which the toolkit sets only in
+  # its own directory scope (and its module will not run twice), so it is set here too.
+  set(GUI_FORMS_THEME_EMBED_SCRIPT "${GAMES_TOOLKIT_SOURCE_DIR}/cmake/GUIFormsThemeEmbed.cmake")
   set(GUIForms_FONT_DIR "${GAMES_TOOLKIT_SOURCE_DIR}/assets/fonts")
 endif()
 add_library(game_paths src/runtime_paths.cpp src/game_data.cpp)

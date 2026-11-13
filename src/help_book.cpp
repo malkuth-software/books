@@ -3,11 +3,12 @@
 #include "game_module.hpp"
 #include "presentation.hpp"
 #include <algorithm>
+#include "stable_ids.hpp"
 namespace games {
 namespace {
 std::shared_ptr<gf::Label> front_line(const std::string& id, std::string_view text, std::uint16_t weight) {
     std::shared_ptr<gf::Label> label =
-        gf::make_control<gf::Label>(gf::StableId("help.front." + id), std::string(text));
+        gf::make_control<gf::Label>(games::stable_id("help.front." + id), std::string(text));
     (*label).font = gf::FontSpec{gf::FontRole::content, 16, weight, false};
     (*label).fore_color = gf::Color::rgba(42, 38, 24);
     (*label).text_wrapping = gf::TextWrapping::word;
@@ -59,11 +60,13 @@ HelpPages::HelpPages(gf::StableId id) : ScrollableControl(std::move(id)) {
 void HelpPages::add_topic(int entry, std::string topic, std::string title,
                           std::string_view body) {
     const int index = static_cast<int>(topics_.size());
-    const std::string key = std::to_string(entry) + "." + (topic.empty() ? "rules" : topic);
+    // The suite's own topics (entry -1) are "suite": a stable ID has no sign.
+    const std::string owner = entry < 0 ? std::string("suite") : std::to_string(entry);
+    const std::string key = owner + "." + (topic.empty() ? "rules" : topic);
     std::shared_ptr<TopicHeading> heading =
-        gf::make_control<TopicHeading>(gf::StableId("help.topic." + key), std::move(title));
+        gf::make_control<TopicHeading>(games::stable_id("help.topic." + key), std::move(title));
     std::shared_ptr<gf::Label> label = gf::make_control<gf::Label>(
-        gf::StableId("help.body." + key), std::string(body));
+        games::stable_id("help.body." + key), std::string(body));
     (*label).font = gf::FontSpec{gf::FontRole::content, 17, 400, false};
     (*label).fore_color = gf::Color::rgba(42, 38, 24);
     (*label).text_wrapping = gf::TextWrapping::word;

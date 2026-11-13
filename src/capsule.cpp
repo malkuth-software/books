@@ -1,6 +1,7 @@
 #include "capsule.hpp"
 #include <algorithm>
 #include <cmath>
+#include "stable_ids.hpp"
 namespace games {
 namespace {
 constexpr double kPad = 5, kGap = 4, kButton = 32, kIcon = 34;
@@ -81,7 +82,7 @@ void CommandCapsule::set_game(std::string title, std::vector<GameCommand> comman
     commands_ = std::move(commands);
     for (const GameCommand& c : commands_) {
         std::shared_ptr<SuiteButton> b =
-            gf::make_control<SuiteButton>(gf::StableId("capsule.cmd." + c.id), c.label,
+            gf::make_control<SuiteButton>(games::stable_id("capsule.cmd." + c.id), c.label,
                                           c.primary ? (c.toggle ? GlossTone::navy : GlossTone::gold)
                                                     : GlossTone::smoke);
         (*b).set_radius(15);
