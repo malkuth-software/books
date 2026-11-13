@@ -30,7 +30,7 @@ if(GAMES_BUILD_APPLICATION AND GUIForms_DIR)
   # --features all, as the local lockstep install is) replaces the source
   # build: the text masks, the loop transport and the pinned FreeType and
   # HarfBuzz the page compositor sets type with are its components.
-  find_package(GUIForms CONFIG REQUIRED
+  find_package(GUIForms 0.6 CONFIG REQUIRED
     COMPONENTS Application Audio AudioLoopTransport TextMasks FreeType HarfBuzz)
 elseif(GAMES_BUILD_APPLICATION)
   set(GAMES_TOOLKIT_SOURCE_DIR "" CACHE PATH "Reviewed GUI.Forms source for development application builds")

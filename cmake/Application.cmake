@@ -82,3 +82,7 @@ endif()
 add_executable(audio_policy_tests tests/audio_policy_tests.cpp)
 target_link_libraries(audio_policy_tests PRIVATE game_audio_adapters)
 add_test(NAME audio_policy COMMAND audio_policy_tests)
+# The view's routed handlers over GUI.Forms' interaction raisers (src/routed_input.hpp).
+add_executable(routed_input_tests tests/routed_input_tests.cpp)
+target_link_libraries(routed_input_tests PRIVATE game_ui)
+add_test(NAME routed_input COMMAND routed_input_tests)

@@ -38,7 +38,7 @@ void CommandCapsule::initialize_control_tree() {
         switches_[i] = make_master_switch("capsule.", i);
         add_child(switches_[i]);
     }
-    (*switches_[0]).set_visible(false);
+    (*switches_[0]).visible = false;
     gf::on((*back_).clicked(), *this, &CommandCapsule::on_back);
     gf::on((*more_).clicked(), *this, &CommandCapsule::on_more);
 }

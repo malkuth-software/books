@@ -204,6 +204,11 @@ int main(int argc,char** argv) {
         games::dogfood::DevelopmentState saves(arguments.dev || arguments.smoke || arguments.profile);
         games::initialize_assets(argv[0]);
         if (!(arguments.dev || arguments.smoke || arguments.profile)) games::carry_over_playsuite_places();
+        // Application-first (GUI.Forms 0.5): the application owns the resources and the
+        // theme every window shares, and runs the windows. GUI.Forms' default theme.
+        gf::ApplicationCreateResult created = gf::Application::create(gf::ApplicationConfig{});
+        if (!created) throw std::runtime_error("The application could not be made");
+        gf::Application& application = *created.application;
         std::shared_ptr<RunState> state = std::make_shared<RunState>();
         (*state).options = arguments;
         if (!arguments.script.empty()) (*state).actions = games::dogfood::read_script(arguments.script);
@@ -218,15 +223,22 @@ int main(int argc,char** argv) {
             (*state).collection = collection; root = collection;
         }
         (*state).root = root;
-        std::unique_ptr<gf::Window> window = std::make_unique<gf::Window>(root,gf::Size{1060,680});
+        std::unique_ptr<gf::Window> window = std::make_unique<gf::Window>(application,root,gf::Size{1060,680});
         gf::ApplicationWindowOptions options;
         options.title = games::suite_name();
         options.initial_size = {1060,680}; options.minimum_size = {600,420};
         options.print_metrics_on_close = true; options.ready = Ready{state};
-        const gf::ApplicationResult result = gf::Application::run(std::move(window),std::move(options));
+        const gf::ApplicationResult result = application.run(std::move(window),std::move(options));
         if (result.callback_exception) std::rethrow_exception(result.callback_exception);
-        if ((arguments.smoke || arguments.profile || !arguments.script.empty()) && !(*state).completed) return 1;
-        if ((*state).completed && result.accepted()) std::cout << "Native Pocket Library window smoke passed\n";
+        const bool completed = (*state).completed;
+        // Everything the run made goes before the rendering library ends: the run state
+        // (a standalone game's module), then the application and its resources.
+        state.reset();
+        root.reset();
+        created.application.reset();
+        static_cast<void>(gf::Application::shutdown());
+        if ((arguments.smoke || arguments.profile || !arguments.script.empty()) && !completed) return 1;
+        if (completed && result.accepted()) std::cout << "Native Pocket Library window smoke passed\n";
         return result.accepted() ? 0 : 1;
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';

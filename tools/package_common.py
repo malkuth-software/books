@@ -8,6 +8,8 @@ import shutil
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
+# PLACEHOLDER PIN (claude/conformance-prep): still v0.2.1308. The sources target GUI.Forms
+# main 96d3696 (0.6); the pin moves at the conformance rebase (CONFORMANCE_PREP.md).
 TOOLKIT_REVISION = "e077f9d5a5117312e65e8c3b741c4edd24013d56"
 
 

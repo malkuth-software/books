@@ -1,7 +1,7 @@
 #include "collection.hpp"
 #include "audio.hpp"
 #include "pcm_player.hpp"
-#include "gui_forms/controls/panel/text_box/text_box.hpp"
+#include "gui_forms/controls/text_box.hpp"
 #include "gui_forms/window.hpp"
 namespace games {
 namespace {
@@ -62,7 +62,8 @@ void Collection::ensure_view(Entry entry) {
     // Card modules intentionally share a control and cabinet. Attach it only once.
     if (std::find(children().begin(), children().end(), created) == children().end()) {
         add_child(created);
-        static_cast<void>(set_child_index((*created).runtime_id(), children().size()-1));
+        // Topmost: the last of children() (index 0 from the top).
+        static_cast<void>(set_child_index_from_top((*created).runtime_id(), 0));
     }
 }
 void Collection::on_attached_to_window() {

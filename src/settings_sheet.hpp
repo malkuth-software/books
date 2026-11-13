@@ -1,7 +1,7 @@
 #pragma once
-#include "gui_forms/controls/button_base/check_box/check_box.hpp"
-#include "gui_forms/controls/range_control/track_bar/track_bar.hpp"
-#include "gui_forms/controls/scrollable_control/scrollable_control.hpp"
+#include "gui_forms/controls/check_box.hpp"
+#include "gui_forms/controls/track_bar.hpp"
+#include "gui_forms/controls/scrollable_control.hpp"
 #include "help_book.hpp"
 #include "suite.hpp"
 #include "suite_model.hpp"
