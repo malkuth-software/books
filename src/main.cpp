@@ -2,10 +2,13 @@
 #include "dogfood.hpp"
 #include "gui_forms/application.hpp"
 #include "gui_forms/paint_framebuffer.hpp"
+#include "playsuite_theme.hpp"  // generated from themes/playsuite (PlaySuite's look)
 #include <fstream>
 #include "runtime_paths.hpp"
 #include <iostream>
+#include <cstddef>
 #include <map>
+#include <vector>
 #include <stdexcept>
 
 namespace gf = gui_forms;
@@ -185,6 +188,43 @@ struct Ready final {
         }
     }
 };
+// Prints the theme compile's findings: the refusal's errors, or the warnings of a
+// theme that was taken. W201 (a literal colour forced high contrast cannot remap) is
+// expected of every PlaySuite colour, which has no GUI.Forms palette role, so those are
+// counted on one line, not listed.
+static void report_theme_findings(const std::vector<gf::ThemeCompileDiagnostic>& findings) {
+    std::size_t unremappable = 0;
+    for (const gf::ThemeCompileDiagnostic& finding : findings) {
+        if (finding.code == "W201") {
+            ++unremappable;
+            continue;
+        }
+        std::cerr << "PlaySuite theme: " << finding.code << ' ' << finding.name << " at " << finding.file << ':'
+                  << finding.line << ':' << finding.column;
+        if (!finding.rule.empty()) std::cerr << " in " << finding.rule;
+        if (!finding.property.empty()) std::cerr << " (" << finding.property << ')';
+        if (!finding.detail.empty()) std::cerr << ": " << finding.detail;
+        std::cerr << '\n';
+    }
+    if (unremappable > 0)
+        std::cerr << "PlaySuite theme: " << unremappable << " literal colours forced high contrast cannot remap (W201)\n";
+}
+// The application: PlaySuite's theme package (themes/playsuite, shared with PlaySuite)
+// over Windows Professional, compiled once. A refused package is reported and the
+// library runs in the base theme rather than not at all.
+static gf::ApplicationCreateResult create_application() {
+    gf::ApplicationConfig config{};
+    config.theme.base = gf::ThemeBase::windows_professional;
+    config.theme.packages.push_back(games::playsuite_theme());
+    gf::ApplicationCreateResult created = gf::Application::create(std::move(config));
+    report_theme_findings(created.findings);
+    if (created || created.error != gf::ApplicationCreateError::theme_refused) return created;
+    std::cerr << "PlaySuite theme refused; running in the base theme\n";
+    gf::ApplicationConfig plain{};
+    plain.theme.base = gf::ThemeBase::windows_professional;
+    gf::ApplicationCreateResult fallback = gf::Application::create(std::move(plain));
+    return fallback;
+}
 int main(int argc,char** argv) {
     try {
         const games::dogfood::Options arguments = games::dogfood::parse_options(argc,argv);
@@ -205,8 +245,8 @@ int main(int argc,char** argv) {
         games::initialize_assets(argv[0]);
         if (!(arguments.dev || arguments.smoke || arguments.profile)) games::carry_over_playsuite_places();
         // Application-first (GUI.Forms 0.5): the application owns the resources and the
-        // theme every window shares, and runs the windows. GUI.Forms' default theme.
-        gf::ApplicationCreateResult created = gf::Application::create(gf::ApplicationConfig{});
+        // theme every window shares, and runs the windows. The look is PlaySuite's.
+        gf::ApplicationCreateResult created = create_application();
         if (!created) throw std::runtime_error("The application could not be made");
         gf::Application& application = *created.application;
         std::shared_ptr<RunState> state = std::make_shared<RunState>();
@@ -224,6 +264,11 @@ int main(int argc,char** argv) {
         }
         (*state).root = root;
         std::unique_ptr<gf::Window> window = std::make_unique<gf::Window>(application,root,gf::Size{1060,680});
+        // PlaySuite's look is one light look: its theme declares the light scheme only,
+        // and a window in the dark scheme would fall back to GUI.Forms' dark theme.
+        gf::PresentationOverrides light{};
+        light.colour_scheme = gf::ColourScheme::light;
+        (*window).set_presentation_overrides(light);
         gf::ApplicationWindowOptions options;
         options.title = games::suite_name();
         options.initial_size = {1060,680}; options.minimum_size = {600,420};

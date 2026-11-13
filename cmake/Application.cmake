@@ -44,6 +44,9 @@ if(WIN32)
     endif()
 endif()
 target_link_libraries(pocketlibrary PRIVATE game_ui)
+# The look is PlaySuite's theme package themes/playsuite (shared with PlaySuite, written by
+# tools/make_theme.py there and copied here as the shell is).
+gui_forms_add_theme(pocketlibrary themes/playsuite FUNCTION playsuite_theme NAMESPACE games)
 set_target_properties(pocketlibrary PROPERTIES
     MACOSX_BUNDLE_BUNDLE_NAME "Pocket Library"
     # Earlier releases' identifier, kept so macOS treats a new version as the
@@ -82,3 +85,8 @@ endif()
 add_executable(audio_policy_tests tests/audio_policy_tests.cpp)
 target_link_libraries(audio_policy_tests PRIVATE game_audio_adapters)
 add_test(NAME audio_policy COMMAND audio_policy_tests)
+# PlaySuite's theme package compiles over Windows Professional with no finding but W201.
+add_executable(playsuite_theme_tests tests/playsuite_theme_tests.cpp)
+target_link_libraries(playsuite_theme_tests PRIVATE game_ui)
+gui_forms_add_theme(playsuite_theme_tests themes/playsuite FUNCTION playsuite_theme NAMESPACE games)
+add_test(NAME playsuite_theme COMMAND playsuite_theme_tests)

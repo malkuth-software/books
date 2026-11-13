@@ -1,0 +1,475 @@
+/* PlaySuite's look as a GUI.Forms theme package. Written by tools/make_theme.py
+   from the shell's colours; edit the script, not this file. */
+:root {
+  color-scheme: light;
+  --gloss-chrome-edge: #64728b;
+  --gloss-chrome-ink: #172b53;
+  --gloss-chrome-ink-disabled: #172b536e;
+  --gloss-gold-edge: #8a6a22;
+  --gloss-gold-ink: #3b2a07;
+  --gloss-gold-ink-disabled: #3b2a076e;
+  --gloss-navy-edge: #0a1840;
+  --gloss-navy-ink: #ffffff;
+  --gloss-navy-ink-disabled: #ffffff6e;
+  --gloss-smoke-edge: #ffffff50;
+  --gloss-smoke-ink: #f2f4f8;
+  --gloss-smoke-ink-disabled: #f2f4f86e;
+  --gloss-ring: #ffd27a;
+  --game-slate-rest-edge: #526b7e;
+  --game-slate-rest-ink: #e2ecf2;
+  --game-slate-checked-edge: #826431;
+  --game-slate-checked-ink: #2d3131;
+  --game-slate-hover-edge: #88a9b4;
+  --game-slate-hover-ink: #e2ecf2;
+  --game-slate-active-edge: #526b7e;
+  --game-slate-active-ink: #e2ecf2;
+  --game-slate-disabled-edge: #3d5367;
+  --game-slate-disabled-ink: #768592;
+  --game-slate-checked-hover-edge: #9ea691;
+  --game-slate-checked-hover-ink: #2d3131;
+  --game-slate-checked-active-edge: #826431;
+  --game-slate-checked-active-ink: #2d3131;
+  --game-slate-checked-disabled-edge: #99783e;
+  --game-slate-checked-disabled-ink: #7c6843;
+  --game-slate-hover-active-edge: #88a9b4;
+  --game-slate-hover-active-ink: #e2ecf2;
+  --game-slate-hover-disabled-edge: #5d7987;
+  --game-slate-hover-disabled-ink: #768592;
+  --game-slate-active-disabled-edge: #475f73;
+  --game-slate-active-disabled-ink: #8495a3;
+  --game-slate-checked-hover-active-edge: #9ea691;
+  --game-slate-checked-hover-active-ink: #2d3131;
+  --game-slate-checked-hover-disabled-edge: #aa9f77;
+  --game-slate-checked-hover-disabled-ink: #7c6843;
+  --game-slate-checked-active-disabled-edge: #ac905a;
+  --game-slate-checked-active-disabled-ink: #958a6a;
+  --game-slate-hover-active-disabled-edge: #708d99;
+  --game-slate-hover-active-disabled-ink: #90a0ab;
+  --game-slate-checked-hover-active-disabled-edge: #bdba97;
+  --game-slate-checked-hover-active-disabled-ink: #968c6f;
+  --game-slate-focus: #aad8e9;
+  --game-ivory-rest-edge: #779188;
+  --game-ivory-rest-ink: #27413c;
+  --game-ivory-checked-edge: #826431;
+  --game-ivory-checked-ink: #2d3131;
+  --game-ivory-hover-edge: #99bab8;
+  --game-ivory-hover-ink: #27413c;
+  --game-ivory-active-edge: #779188;
+  --game-ivory-active-ink: #27413c;
+  --game-ivory-disabled-edge: #9caea2;
+  --game-ivory-disabled-ink: #86958a;
+  --game-ivory-checked-hover-edge: #9ea691;
+  --game-ivory-checked-hover-ink: #2d3131;
+  --game-ivory-checked-active-edge: #826431;
+  --game-ivory-checked-active-ink: #2d3131;
+}
+:root {
+  --game-ivory-checked-disabled-edge: #99783e;
+  --game-ivory-checked-disabled-ink: #7c6843;
+  --game-ivory-hover-active-edge: #99bab8;
+  --game-ivory-hover-active-ink: #27413c;
+  --game-ivory-hover-disabled-edge: #b0c6bf;
+  --game-ivory-hover-disabled-ink: #86958a;
+  --game-ivory-active-disabled-edge: #aab9af;
+  --game-ivory-active-disabled-ink: #99a49c;
+  --game-ivory-checked-hover-active-edge: #9ea691;
+  --game-ivory-checked-hover-active-ink: #2d3131;
+  --game-ivory-checked-hover-disabled-edge: #aa9f77;
+  --game-ivory-checked-hover-disabled-ink: #7c6843;
+  --game-ivory-checked-active-disabled-edge: #ac905a;
+  --game-ivory-checked-active-disabled-ink: #958a6a;
+  --game-ivory-hover-active-disabled-edge: #bed2cc;
+  --game-ivory-hover-active-disabled-ink: #98a49b;
+  --game-ivory-checked-hover-active-disabled-edge: #bdba97;
+  --game-ivory-checked-hover-active-disabled-ink: #968c6f;
+  --game-ivory-focus: #2d6783;
+  --game-blue-rest-edge: #719dbf;
+  --game-blue-rest-ink: #1f5178;
+  --game-blue-checked-edge: #826431;
+  --game-blue-checked-ink: #2d3131;
+  --game-blue-hover-edge: #96bfd1;
+  --game-blue-hover-ink: #1f5178;
+  --game-blue-active-edge: #719dbf;
+  --game-blue-active-ink: #1f5178;
+  --game-blue-disabled-edge: #92b7d3;
+  --game-blue-disabled-ink: #7a9fba;
+  --game-blue-checked-hover-edge: #9ea691;
+  --game-blue-checked-hover-ink: #2d3131;
+  --game-blue-checked-active-edge: #826431;
+  --game-blue-checked-active-ink: #2d3131;
+  --game-blue-checked-disabled-edge: #99783e;
+  --game-blue-checked-disabled-ink: #7c6843;
+  --game-blue-hover-active-edge: #96bfd1;
+  --game-blue-hover-active-ink: #1f5178;
+  --game-blue-hover-disabled-edge: #a8cbdd;
+  --game-blue-hover-disabled-ink: #7a9fba;
+  --game-blue-active-disabled-edge: #a5c2d8;
+  --game-blue-active-disabled-ink: #94aec2;
+  --game-blue-checked-hover-active-edge: #9ea691;
+  --game-blue-checked-hover-active-ink: #2d3131;
+  --game-blue-checked-hover-disabled-edge: #aa9f77;
+  --game-blue-checked-hover-disabled-ink: #7c6843;
+  --game-blue-checked-active-disabled-edge: #ac905a;
+  --game-blue-checked-active-disabled-ink: #958a6a;
+  --game-blue-hover-active-disabled-edge: #bbd6e1;
+  --game-blue-hover-active-disabled-ink: #94adc0;
+  --game-blue-checked-hover-active-disabled-edge: #bdba97;
+  --game-blue-checked-hover-active-disabled-ink: #968c6f;
+  --game-blue-focus: #2d6783;
+  --game-mint-rest-edge: #7da189;
+  --game-mint-rest-ink: #e2ecf2;
+  --game-mint-checked-edge: #826431;
+  --game-mint-checked-ink: #2d3131;
+  --game-mint-hover-edge: #9bc1b9;
+  --game-mint-hover-ink: #e2ecf2;
+  --game-mint-active-edge: #7da189;
+  --game-mint-active-ink: #e2ecf2;
+}
+:root {
+  --game-mint-disabled-edge: #5a7b6c;
+  --game-mint-disabled-ink: #7b8f91;
+  --game-mint-checked-hover-edge: #9ea691;
+  --game-mint-checked-hover-ink: #2d3131;
+  --game-mint-checked-active-edge: #826431;
+  --game-mint-checked-active-ink: #2d3131;
+  --game-mint-checked-disabled-edge: #99783e;
+  --game-mint-checked-disabled-ink: #7c6843;
+  --game-mint-hover-active-edge: #9bc1b9;
+  --game-mint-hover-active-ink: #e2ecf2;
+  --game-mint-hover-disabled-edge: #6c8f89;
+  --game-mint-hover-disabled-ink: #7b8f91;
+  --game-mint-active-disabled-edge: #698c7b;
+  --game-mint-active-disabled-ink: #90a6a5;
+  --game-mint-checked-hover-active-edge: #9ea691;
+  --game-mint-checked-hover-active-ink: #2d3131;
+  --game-mint-checked-hover-disabled-edge: #aa9f77;
+  --game-mint-checked-hover-disabled-ink: #7c6843;
+  --game-mint-checked-active-disabled-edge: #ac905a;
+  --game-mint-checked-active-disabled-ink: #958a6a;
+  --game-mint-hover-active-disabled-edge: #83a59d;
+  --game-mint-hover-active-disabled-ink: #9baead;
+  --game-mint-checked-hover-active-disabled-edge: #bdba97;
+  --game-mint-checked-hover-active-disabled-ink: #968c6f;
+  --game-mint-focus: #aad8e9;
+  --skin-ivory-text: #233f52;
+  --skin-ivory-field-edge: #7399b8;
+  --skin-ivory-field-text: #1a3b53;
+  --skin-ivory-focus: #8cc0de;
+  --skin-mint-text: #e5ebf1;
+  --skin-mint-field-edge: #6893ab;
+  --skin-mint-field-text: #eff0de;
+  --skin-mint-focus: #8cc0de;
+  --skin-blue-text: #233f52;
+  --skin-blue-field-edge: #7399b8;
+  --skin-blue-field-text: #1a3b53;
+  --skin-blue-focus: #8cc0de;
+  --skin-slate-text: #e5ebf1;
+  --skin-slate-field-edge: #6893ab;
+  --skin-slate-field-text: #eff0de;
+  --skin-slate-focus: #8cc0de;
+  --setting-groove-edge: #ad9758;
+  --setting-slider-focus: #b8892a;
+  --setting-box-edge: #a68c4a;
+  --settings-ink: #2a2618;
+  --settings-ink-disabled: #968c6e;
+  --setting-box-focus: #d6a028c8;
+  --card-back-hover: #b8892a96;
+  --card-back-chosen: #d6a028;
+  --card-back-focus: #d6a028c8;
+  --help-glyph-ink: #b8892a;
+  --help-link-ink: #f0c054;
+  --card-mark-ink: #e4dcc4;
+  --help-glyph-hot: #ffe08c;
+  --help-ink: #2a2618;
+  --help-mark: #423a21;
+  --help-heading-focus: #6e5b25;
+  --settings-heading: #8c6522;
+}
+
+/* The gloss (SuiteButton: the capsule, the shelf's switches, the settings chips, Rock Stack's buttons). A button.gloss carries its tone as a class; lit (checked) is gold whatever the tone; a pill or a circle (rounded-end) has no shine line. */
+button.gloss.chrome:not(.rounded-end)::part(face) { background: linear-gradient(to bottom, #ffffff 0%, #dbe3ef 48%, #bdc9dc 52%, #e6ebf3 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.chrome:not(.rounded-end):hover::part(face) { background: linear-gradient(to bottom, #ffffff 0%, #eef3ff 48%, #d7e3ff 52%, #ffffff 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.chrome:not(.rounded-end):active::part(face) { background: linear-gradient(to bottom, #bdc9dc 0%, #bdc9dc 48%, #dbe3ef 52%, #ffffff 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.chrome:not(.rounded-end):disabled::part(face) { background: linear-gradient(to bottom, #d0d2d8 0%, #bcc3cf 48%, #abb5c5 52%, #c2c7d1 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.chrome:not(.rounded-end):hover:active::part(face) { background: linear-gradient(to bottom, #d7e3ff 0%, #d7e3ff 48%, #eef3ff 52%, #ffffff 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.chrome:not(.rounded-end):hover:disabled::part(face) { background: linear-gradient(to bottom, #d0d2d8 0%, #c6ccd8 48%, #bac3d8 52%, #d0d2d8 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.chrome:not(.rounded-end):active:disabled::part(face) { background: linear-gradient(to bottom, #abb5c5 0%, #abb5c5 48%, #bcc3cf 52%, #d0d2d8 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.chrome:not(.rounded-end):hover:active:disabled::part(face) { background: linear-gradient(to bottom, #bac3d8 0%, #bac3d8 48%, #c6ccd8 52%, #d0d2d8 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.chrome.rounded-end::part(face) { background: linear-gradient(to bottom, #ffffff 0%, #dbe3ef 48%, #bdc9dc 52%, #e6ebf3 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: 0 2px 2px #0a122846; keylines: none; }
+button.gloss.chrome.rounded-end:hover::part(face) { background: linear-gradient(to bottom, #ffffff 0%, #eef3ff 48%, #d7e3ff 52%, #ffffff 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: 0 2px 2px #0a122846; keylines: none; }
+button.gloss.chrome.rounded-end:active::part(face) { background: linear-gradient(to bottom, #bdc9dc 0%, #bdc9dc 48%, #dbe3ef 52%, #ffffff 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: none; }
+button.gloss.chrome.rounded-end:disabled::part(face) { background: linear-gradient(to bottom, #d0d2d8 0%, #bcc3cf 48%, #abb5c5 52%, #c2c7d1 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: none; }
+button.gloss.chrome.rounded-end:hover:active::part(face) { background: linear-gradient(to bottom, #d7e3ff 0%, #d7e3ff 48%, #eef3ff 52%, #ffffff 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: none; }
+button.gloss.chrome.rounded-end:hover:disabled::part(face) { background: linear-gradient(to bottom, #d0d2d8 0%, #c6ccd8 48%, #bac3d8 52%, #d0d2d8 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: none; }
+button.gloss.chrome.rounded-end:active:disabled::part(face) { background: linear-gradient(to bottom, #abb5c5 0%, #abb5c5 48%, #bcc3cf 52%, #d0d2d8 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: none; }
+button.gloss.chrome.rounded-end:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #bac3d8 0%, #bac3d8 48%, #c6ccd8 52%, #d0d2d8 100%); border: 1px solid var(--gloss-chrome-edge); box-shadow: none; keylines: none; }
+button.gloss.chrome::part(label) { color: var(--gloss-chrome-ink); }
+button.gloss.chrome:disabled::part(label) { color: var(--gloss-chrome-ink-disabled); }
+button.gloss.gold:not(.rounded-end)::part(face) { background: linear-gradient(to bottom, #fff4d6 0%, #ffe2a0 48%, #f2c766 52%, #ffe9b4 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.gold:not(.rounded-end):hover::part(face) { background: linear-gradient(to bottom, #fffae6 0%, #ffeab2 48%, #f8d278 52%, #fff0c8 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.gold:not(.rounded-end):active::part(face) { background: linear-gradient(to bottom, #f2c766 0%, #f2c766 48%, #ffe2a0 52%, #fff4d6 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.gold:not(.rounded-end):disabled::part(face) { background: linear-gradient(to bottom, #d0ccc1 0%, #d0c3a4 48%, #c9b484 52%, #d0c6af 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.gold:not(.rounded-end):hover:active::part(face) { background: linear-gradient(to bottom, #f8d278 0%, #f8d278 48%, #ffeab2 52%, #fffae6 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.gold:not(.rounded-end):hover:disabled::part(face) { background: linear-gradient(to bottom, #d0d0ca 0%, #d0c7ae 48%, #ccba8e 52%, #d0caba 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.gold:not(.rounded-end):active:disabled::part(face) { background: linear-gradient(to bottom, #c9b484 0%, #c9b484 48%, #d0c3a4 52%, #d0ccc1 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.gold:not(.rounded-end):hover:active:disabled::part(face) { background: linear-gradient(to bottom, #ccba8e 0%, #ccba8e 48%, #d0c7ae 52%, #d0d0ca 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.gold.rounded-end::part(face) { background: linear-gradient(to bottom, #fff4d6 0%, #ffe2a0 48%, #f2c766 52%, #ffe9b4 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: 0 2px 2px #0a122846; keylines: none; }
+button.gloss.gold.rounded-end:hover::part(face) { background: linear-gradient(to bottom, #fffae6 0%, #ffeab2 48%, #f8d278 52%, #fff0c8 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: 0 2px 2px #0a122846; keylines: none; }
+button.gloss.gold.rounded-end:active::part(face) { background: linear-gradient(to bottom, #f2c766 0%, #f2c766 48%, #ffe2a0 52%, #fff4d6 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss.gold.rounded-end:disabled::part(face) { background: linear-gradient(to bottom, #d0ccc1 0%, #d0c3a4 48%, #c9b484 52%, #d0c6af 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss.gold.rounded-end:hover:active::part(face) { background: linear-gradient(to bottom, #f8d278 0%, #f8d278 48%, #ffeab2 52%, #fffae6 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss.gold.rounded-end:hover:disabled::part(face) { background: linear-gradient(to bottom, #d0d0ca 0%, #d0c7ae 48%, #ccba8e 52%, #d0caba 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss.gold.rounded-end:active:disabled::part(face) { background: linear-gradient(to bottom, #c9b484 0%, #c9b484 48%, #d0c3a4 52%, #d0ccc1 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss.gold.rounded-end:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #ccba8e 0%, #ccba8e 48%, #d0c7ae 52%, #d0d0ca 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss.gold::part(label) { color: var(--gloss-gold-ink); }
+button.gloss.gold:disabled::part(label) { color: var(--gloss-gold-ink-disabled); }
+button.gloss.navy:not(.rounded-end)::part(face) { background: linear-gradient(to bottom, #5a7fd6 0%, #2a4ea8 48%, #17347f 52%, #3a5fbd 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.navy:not(.rounded-end):hover::part(face) { background: linear-gradient(to bottom, #7094e8 0%, #3a60be 48%, #224296 52%, #4c72d0 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.navy:not(.rounded-end):active::part(face) { background: linear-gradient(to bottom, #17347f 0%, #17347f 48%, #2a4ea8 52%, #5a7fd6 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.navy:not(.rounded-end):disabled::part(face) { background: linear-gradient(to bottom, #758cc1 0%, #5b71a8 48%, #506391 52%, #637ab4 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.navy:not(.rounded-end):hover:active::part(face) { background: linear-gradient(to bottom, #224296 0%, #224296 48%, #3a60be 52%, #7094e8 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.navy:not(.rounded-end):hover:disabled::part(face) { background: linear-gradient(to bottom, #8198cb 0%, #637bb4 48%, #566b9e 52%, #6d85be 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss.navy:not(.rounded-end):active:disabled::part(face) { background: linear-gradient(to bottom, #506391 0%, #506391 48%, #5b71a8 52%, #758cc1 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.navy:not(.rounded-end):hover:active:disabled::part(face) { background: linear-gradient(to bottom, #566b9e 0%, #566b9e 48%, #637bb4 52%, #8198cb 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss.navy.rounded-end::part(face) { background: linear-gradient(to bottom, #5a7fd6 0%, #2a4ea8 48%, #17347f 52%, #3a5fbd 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: 0 2px 2px #0a122846; keylines: none; }
+button.gloss.navy.rounded-end:hover::part(face) { background: linear-gradient(to bottom, #7094e8 0%, #3a60be 48%, #224296 52%, #4c72d0 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: 0 2px 2px #0a122846; keylines: none; }
+button.gloss.navy.rounded-end:active::part(face) { background: linear-gradient(to bottom, #17347f 0%, #17347f 48%, #2a4ea8 52%, #5a7fd6 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: none; }
+button.gloss.navy.rounded-end:disabled::part(face) { background: linear-gradient(to bottom, #758cc1 0%, #5b71a8 48%, #506391 52%, #637ab4 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: none; }
+button.gloss.navy.rounded-end:hover:active::part(face) { background: linear-gradient(to bottom, #224296 0%, #224296 48%, #3a60be 52%, #7094e8 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: none; }
+button.gloss.navy.rounded-end:hover:disabled::part(face) { background: linear-gradient(to bottom, #8198cb 0%, #637bb4 48%, #566b9e 52%, #6d85be 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: none; }
+button.gloss.navy.rounded-end:active:disabled::part(face) { background: linear-gradient(to bottom, #506391 0%, #506391 48%, #5b71a8 52%, #758cc1 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: none; }
+button.gloss.navy.rounded-end:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #566b9e 0%, #566b9e 48%, #637bb4 52%, #8198cb 100%); border: 1px solid var(--gloss-navy-edge); box-shadow: none; keylines: none; }
+button.gloss.navy::part(label) { color: var(--gloss-navy-ink); }
+button.gloss.navy:disabled::part(label) { color: var(--gloss-navy-ink-disabled); }
+button.gloss.smoke:not(.rounded-end)::part(face) { background: linear-gradient(to bottom, #586480eb 0%, #3a445ceb 48%, #283044eb 52%, #343e54eb 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff28 #ffffff00 #ffffff00; }
+button.gloss.smoke:not(.rounded-end):hover::part(face) { background: linear-gradient(to bottom, #707e9ef5 0%, #4c5874f5 48%, #364058f5 52%, #46526cf5 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff28 #ffffff00 #ffffff00; }
+button.gloss.smoke:not(.rounded-end):active::part(face) { background: linear-gradient(to bottom, #283044eb 0%, #283044eb 48%, #3a445ceb 52%, #586480eb 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: #ffffff00, #ffffff28 #ffffff00 #ffffff00; }
+button.gloss.smoke:not(.rounded-end):disabled::part(face) { background: linear-gradient(to bottom, #747d92eb 0%, #636c7eeb 48%, #5a6171eb 52%, #60687aeb 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: #ffffff00, #ffffff28 #ffffff00 #ffffff00; }
+button.gloss.smoke:not(.rounded-end):hover:active::part(face) { background: linear-gradient(to bottom, #364058f5 0%, #364058f5 48%, #4c5874f5 52%, #707e9ef5 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: #ffffff00, #ffffff28 #ffffff00 #ffffff00; }
+button.gloss.smoke:not(.rounded-end):hover:disabled::part(face) { background: linear-gradient(to bottom, #818ca3f5 0%, #6d778bf5 48%, #61697cf5 52%, #6a7387f5 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: #ffffff00, #ffffff28 #ffffff00 #ffffff00; }
+button.gloss.smoke:not(.rounded-end):active:disabled::part(face) { background: linear-gradient(to bottom, #5a6171eb 0%, #5a6171eb 48%, #636c7eeb 52%, #747d92eb 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: #ffffff00, #ffffff28 #ffffff00 #ffffff00; }
+button.gloss.smoke:not(.rounded-end):hover:active:disabled::part(face) { background: linear-gradient(to bottom, #61697cf5 0%, #61697cf5 48%, #6d778bf5 52%, #818ca3f5 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: #ffffff00, #ffffff28 #ffffff00 #ffffff00; }
+button.gloss.smoke.rounded-end::part(face) { background: linear-gradient(to bottom, #586480eb 0%, #3a445ceb 48%, #283044eb 52%, #343e54eb 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: 0 2px 2px #0a122846; keylines: none; }
+button.gloss.smoke.rounded-end:hover::part(face) { background: linear-gradient(to bottom, #707e9ef5 0%, #4c5874f5 48%, #364058f5 52%, #46526cf5 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: 0 2px 2px #0a122846; keylines: none; }
+button.gloss.smoke.rounded-end:active::part(face) { background: linear-gradient(to bottom, #283044eb 0%, #283044eb 48%, #3a445ceb 52%, #586480eb 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: none; }
+button.gloss.smoke.rounded-end:disabled::part(face) { background: linear-gradient(to bottom, #747d92eb 0%, #636c7eeb 48%, #5a6171eb 52%, #60687aeb 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: none; }
+button.gloss.smoke.rounded-end:hover:active::part(face) { background: linear-gradient(to bottom, #364058f5 0%, #364058f5 48%, #4c5874f5 52%, #707e9ef5 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: none; }
+button.gloss.smoke.rounded-end:hover:disabled::part(face) { background: linear-gradient(to bottom, #818ca3f5 0%, #6d778bf5 48%, #61697cf5 52%, #6a7387f5 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: none; }
+button.gloss.smoke.rounded-end:active:disabled::part(face) { background: linear-gradient(to bottom, #5a6171eb 0%, #5a6171eb 48%, #636c7eeb 52%, #747d92eb 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: none; }
+button.gloss.smoke.rounded-end:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #61697cf5 0%, #61697cf5 48%, #6d778bf5 52%, #818ca3f5 100%); border: 1px solid var(--gloss-smoke-edge); box-shadow: none; keylines: none; }
+button.gloss.smoke::part(label) { color: var(--gloss-smoke-ink); }
+button.gloss.smoke:disabled::part(label) { color: var(--gloss-smoke-ink-disabled); }
+button.gloss:checked:not(.rounded-end)::part(face) { background: linear-gradient(to bottom, #fff4d6 0%, #ffe2a0 48%, #f2c766 52%, #ffe9b4 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss:checked:not(.rounded-end):hover::part(face) { background: linear-gradient(to bottom, #fffae6 0%, #ffeab2 48%, #f8d278 52%, #fff0c8 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss:checked:not(.rounded-end):active::part(face) { background: linear-gradient(to bottom, #f2c766 0%, #f2c766 48%, #ffe2a0 52%, #fff4d6 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss:checked:not(.rounded-end):disabled::part(face) { background: linear-gradient(to bottom, #d0ccc1 0%, #d0c3a4 48%, #c9b484 52%, #d0c6af 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss:checked:not(.rounded-end):hover:active::part(face) { background: linear-gradient(to bottom, #f8d278 0%, #f8d278 48%, #ffeab2 52%, #fffae6 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss:checked:not(.rounded-end):hover:disabled::part(face) { background: linear-gradient(to bottom, #d0d0ca 0%, #d0c7ae 48%, #ccba8e 52%, #d0caba 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+button.gloss:checked:not(.rounded-end):active:disabled::part(face) { background: linear-gradient(to bottom, #c9b484 0%, #c9b484 48%, #d0c3a4 52%, #d0ccc1 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss:checked:not(.rounded-end):hover:active:disabled::part(face) { background: linear-gradient(to bottom, #ccba8e 0%, #ccba8e 48%, #d0c7ae 52%, #d0d0ca 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+button.gloss:checked.rounded-end::part(face) { background: linear-gradient(to bottom, #fff4d6 0%, #ffe2a0 48%, #f2c766 52%, #ffe9b4 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: 0 2px 2px #0a122846; keylines: none; }
+button.gloss:checked.rounded-end:hover::part(face) { background: linear-gradient(to bottom, #fffae6 0%, #ffeab2 48%, #f8d278 52%, #fff0c8 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: 0 2px 2px #0a122846; keylines: none; }
+button.gloss:checked.rounded-end:active::part(face) { background: linear-gradient(to bottom, #f2c766 0%, #f2c766 48%, #ffe2a0 52%, #fff4d6 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss:checked.rounded-end:disabled::part(face) { background: linear-gradient(to bottom, #d0ccc1 0%, #d0c3a4 48%, #c9b484 52%, #d0c6af 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss:checked.rounded-end:hover:active::part(face) { background: linear-gradient(to bottom, #f8d278 0%, #f8d278 48%, #ffeab2 52%, #fffae6 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss:checked.rounded-end:hover:disabled::part(face) { background: linear-gradient(to bottom, #d0d0ca 0%, #d0c7ae 48%, #ccba8e 52%, #d0caba 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss:checked.rounded-end:active:disabled::part(face) { background: linear-gradient(to bottom, #c9b484 0%, #c9b484 48%, #d0c3a4 52%, #d0ccc1 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss:checked.rounded-end:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #ccba8e 0%, #ccba8e 48%, #d0c7ae 52%, #d0d0ca 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: none; }
+button.gloss:checked::part(label) { color: var(--gloss-gold-ink); }
+button.gloss:checked:disabled::part(label) { color: var(--gloss-gold-ink-disabled); }
+button.gloss::part(focus) { border: 2px solid var(--gloss-ring); background: transparent; box-shadow: none; }
+
+/* The game panels' buttons (GameButton: the card table, the puzzles). A button.game-button carries its skin as a class; chosen is :checked. */
+button.game-button.slate::part(face) { background: linear-gradient(to bottom, #384f63, #1e3145); border: 1px solid var(--game-slate-rest-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate::part(label) { color: var(--game-slate-rest-ink); }
+button.game-button.slate:checked::part(face) { background: linear-gradient(to bottom, #ebd499, #bd9652); border: 1px solid var(--game-slate-checked-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:checked::part(label) { color: var(--game-slate-checked-ink); }
+button.game-button.slate:hover::part(face) { background: linear-gradient(to bottom, #4e6372, #1e3145); border: 1px solid var(--game-slate-hover-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:hover::part(label) { color: var(--game-slate-hover-ink); }
+button.game-button.slate:active::part(face) { background: linear-gradient(to bottom, #1e3145, #384f63); border: 1px solid var(--game-slate-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:active::part(label) { color: var(--game-slate-active-ink); }
+button.game-button.slate:disabled::part(face) { background: linear-gradient(to bottom, #2b4054, #1e3145); border: 1px solid var(--game-slate-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:disabled::part(label) { color: var(--game-slate-disabled-ink); }
+button.game-button.slate:checked:hover::part(face) { background: linear-gradient(to bottom, #ecd8a2, #bd9652); border: 1px solid var(--game-slate-checked-hover-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:checked:hover::part(label) { color: var(--game-slate-checked-hover-ink); }
+button.game-button.slate:checked:active::part(face) { background: linear-gradient(to bottom, #bd9652, #ebd499); border: 1px solid var(--game-slate-checked-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:checked:active::part(label) { color: var(--game-slate-checked-active-ink); }
+button.game-button.slate:checked:disabled::part(face) { background: linear-gradient(to bottom, #d4b575, #bd9652); border: 1px solid var(--game-slate-checked-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:checked:disabled::part(label) { color: var(--game-slate-checked-disabled-ink); }
+button.game-button.slate:hover:active::part(face) { background: linear-gradient(to bottom, #1e3145, #4e6372); border: 1px solid var(--game-slate-hover-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:hover:active::part(label) { color: var(--game-slate-hover-active-ink); }
+button.game-button.slate:hover:disabled::part(face) { background: linear-gradient(to bottom, #364a5b, #1e3145); border: 1px solid var(--game-slate-hover-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:hover:disabled::part(label) { color: var(--game-slate-hover-disabled-ink); }
+button.game-button.slate:active:disabled::part(face) { background: linear-gradient(to bottom, #2b4054, #384f63); border: 1px solid var(--game-slate-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:active:disabled::part(label) { color: var(--game-slate-active-disabled-ink); }
+button.game-button.slate:checked:hover:active::part(face) { background: linear-gradient(to bottom, #bd9652, #ecd8a2); border: 1px solid var(--game-slate-checked-hover-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:checked:hover:active::part(label) { color: var(--game-slate-checked-hover-active-ink); }
+button.game-button.slate:checked:hover:disabled::part(face) { background: linear-gradient(to bottom, #d4b77a, #bd9652); border: 1px solid var(--game-slate-checked-hover-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:checked:hover:disabled::part(label) { color: var(--game-slate-checked-hover-disabled-ink); }
+button.game-button.slate:checked:active:disabled::part(face) { background: linear-gradient(to bottom, #d4b575, #ebd499); border: 1px solid var(--game-slate-checked-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:checked:active:disabled::part(label) { color: var(--game-slate-checked-active-disabled-ink); }
+button.game-button.slate:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #364a5b, #4e6372); border: 1px solid var(--game-slate-hover-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:hover:active:disabled::part(label) { color: var(--game-slate-hover-active-disabled-ink); }
+button.game-button.slate:checked:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #d4b77a, #ecd8a2); border: 1px solid var(--game-slate-checked-hover-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.slate:checked:hover:active:disabled::part(label) { color: var(--game-slate-checked-hover-active-disabled-ink); }
+button.game-button.slate::part(focus) { border: 1px solid var(--game-slate-focus); background: transparent; box-shadow: none; }
+button.game-button.ivory::part(face) { background: linear-gradient(to bottom, #f7f6eb, #d4daca); border: 1px solid var(--game-ivory-rest-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory::part(label) { color: var(--game-ivory-rest-ink); }
+button.game-button.ivory:checked::part(face) { background: linear-gradient(to bottom, #ebd499, #bd9652); border: 1px solid var(--game-ivory-checked-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:checked::part(label) { color: var(--game-ivory-checked-ink); }
+button.game-button.ivory:hover::part(face) { background: linear-gradient(to bottom, #f6f6ea, #d4daca); border: 1px solid var(--game-ivory-hover-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:hover::part(label) { color: var(--game-ivory-hover-ink); }
+button.game-button.ivory:active::part(face) { background: linear-gradient(to bottom, #d4daca, #f7f6eb); border: 1px solid var(--game-ivory-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:active::part(label) { color: var(--game-ivory-active-ink); }
+button.game-button.ivory:disabled::part(face) { background: linear-gradient(to bottom, #e5e8da, #d4daca); border: 1px solid var(--game-ivory-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:disabled::part(label) { color: var(--game-ivory-disabled-ink); }
+button.game-button.ivory:checked:hover::part(face) { background: linear-gradient(to bottom, #ecd8a2, #bd9652); border: 1px solid var(--game-ivory-checked-hover-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:checked:hover::part(label) { color: var(--game-ivory-checked-hover-ink); }
+button.game-button.ivory:checked:active::part(face) { background: linear-gradient(to bottom, #bd9652, #ebd499); border: 1px solid var(--game-ivory-checked-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:checked:active::part(label) { color: var(--game-ivory-checked-active-ink); }
+button.game-button.ivory:checked:disabled::part(face) { background: linear-gradient(to bottom, #d4b575, #bd9652); border: 1px solid var(--game-ivory-checked-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:checked:disabled::part(label) { color: var(--game-ivory-checked-disabled-ink); }
+button.game-button.ivory:hover:active::part(face) { background: linear-gradient(to bottom, #d4daca, #f6f6ea); border: 1px solid var(--game-ivory-hover-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:hover:active::part(label) { color: var(--game-ivory-hover-active-ink); }
+button.game-button.ivory:hover:disabled::part(face) { background: linear-gradient(to bottom, #e5e8da, #d4daca); border: 1px solid var(--game-ivory-hover-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:hover:disabled::part(label) { color: var(--game-ivory-hover-disabled-ink); }
+button.game-button.ivory:active:disabled::part(face) { background: linear-gradient(to bottom, #e5e8da, #f7f6eb); border: 1px solid var(--game-ivory-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:active:disabled::part(label) { color: var(--game-ivory-active-disabled-ink); }
+button.game-button.ivory:checked:hover:active::part(face) { background: linear-gradient(to bottom, #bd9652, #ecd8a2); border: 1px solid var(--game-ivory-checked-hover-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:checked:hover:active::part(label) { color: var(--game-ivory-checked-hover-active-ink); }
+button.game-button.ivory:checked:hover:disabled::part(face) { background: linear-gradient(to bottom, #d4b77a, #bd9652); border: 1px solid var(--game-ivory-checked-hover-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:checked:hover:disabled::part(label) { color: var(--game-ivory-checked-hover-disabled-ink); }
+button.game-button.ivory:checked:active:disabled::part(face) { background: linear-gradient(to bottom, #d4b575, #ebd499); border: 1px solid var(--game-ivory-checked-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:checked:active:disabled::part(label) { color: var(--game-ivory-checked-active-disabled-ink); }
+button.game-button.ivory:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #e5e8da, #f6f6ea); border: 1px solid var(--game-ivory-hover-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:hover:active:disabled::part(label) { color: var(--game-ivory-hover-active-disabled-ink); }
+button.game-button.ivory:checked:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #d4b77a, #ecd8a2); border: 1px solid var(--game-ivory-checked-hover-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.ivory:checked:hover:active:disabled::part(label) { color: var(--game-ivory-checked-hover-active-disabled-ink); }
+button.game-button.ivory::part(focus) { border: 1px solid var(--game-ivory-focus); background: transparent; box-shadow: none; }
+button.game-button.blue::part(face) { background: linear-gradient(to bottom, #f4fbff, #c5dff1); border: 1px solid var(--game-blue-rest-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue::part(label) { color: var(--game-blue-rest-ink); }
+button.game-button.blue:checked::part(face) { background: linear-gradient(to bottom, #ebd499, #bd9652); border: 1px solid var(--game-blue-checked-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:checked::part(label) { color: var(--game-blue-checked-ink); }
+button.game-button.blue:hover::part(face) { background: linear-gradient(to bottom, #f4fafb, #c5dff1); border: 1px solid var(--game-blue-hover-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:hover::part(label) { color: var(--game-blue-hover-ink); }
+button.game-button.blue:active::part(face) { background: linear-gradient(to bottom, #c5dff1, #f4fbff); border: 1px solid var(--game-blue-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:active::part(label) { color: var(--game-blue-active-ink); }
+button.game-button.blue:disabled::part(face) { background: linear-gradient(to bottom, #dcedf8, #c5dff1); border: 1px solid var(--game-blue-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:disabled::part(label) { color: var(--game-blue-disabled-ink); }
+button.game-button.blue:checked:hover::part(face) { background: linear-gradient(to bottom, #ecd8a2, #bd9652); border: 1px solid var(--game-blue-checked-hover-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:checked:hover::part(label) { color: var(--game-blue-checked-hover-ink); }
+button.game-button.blue:checked:active::part(face) { background: linear-gradient(to bottom, #bd9652, #ebd499); border: 1px solid var(--game-blue-checked-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:checked:active::part(label) { color: var(--game-blue-checked-active-ink); }
+button.game-button.blue:checked:disabled::part(face) { background: linear-gradient(to bottom, #d4b575, #bd9652); border: 1px solid var(--game-blue-checked-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:checked:disabled::part(label) { color: var(--game-blue-checked-disabled-ink); }
+button.game-button.blue:hover:active::part(face) { background: linear-gradient(to bottom, #c5dff1, #f4fafb); border: 1px solid var(--game-blue-hover-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:hover:active::part(label) { color: var(--game-blue-hover-active-ink); }
+button.game-button.blue:hover:disabled::part(face) { background: linear-gradient(to bottom, #dcecf6, #c5dff1); border: 1px solid var(--game-blue-hover-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:hover:disabled::part(label) { color: var(--game-blue-hover-disabled-ink); }
+button.game-button.blue:active:disabled::part(face) { background: linear-gradient(to bottom, #dcedf8, #f4fbff); border: 1px solid var(--game-blue-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:active:disabled::part(label) { color: var(--game-blue-active-disabled-ink); }
+button.game-button.blue:checked:hover:active::part(face) { background: linear-gradient(to bottom, #bd9652, #ecd8a2); border: 1px solid var(--game-blue-checked-hover-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:checked:hover:active::part(label) { color: var(--game-blue-checked-hover-active-ink); }
+button.game-button.blue:checked:hover:disabled::part(face) { background: linear-gradient(to bottom, #d4b77a, #bd9652); border: 1px solid var(--game-blue-checked-hover-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffffc3 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:checked:hover:disabled::part(label) { color: var(--game-blue-checked-hover-disabled-ink); }
+button.game-button.blue:checked:active:disabled::part(face) { background: linear-gradient(to bottom, #d4b575, #ebd499); border: 1px solid var(--game-blue-checked-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:checked:active:disabled::part(label) { color: var(--game-blue-checked-active-disabled-ink); }
+button.game-button.blue:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #dcecf6, #f4fafb); border: 1px solid var(--game-blue-hover-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:hover:active:disabled::part(label) { color: var(--game-blue-hover-active-disabled-ink); }
+button.game-button.blue:checked:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #d4b77a, #ecd8a2); border: 1px solid var(--game-blue-checked-hover-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614231e #ffffff00; }
+button.game-button.blue:checked:hover:active:disabled::part(label) { color: var(--game-blue-checked-hover-active-disabled-ink); }
+button.game-button.blue::part(focus) { border: 1px solid var(--game-blue-focus); background: transparent; box-shadow: none; }
+button.game-button.mint::part(face) { background: linear-gradient(to bottom, #4d6d66, #274442); border: 1px solid var(--game-mint-rest-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint::part(label) { color: var(--game-mint-rest-ink); }
+button.game-button.mint:checked::part(face) { background: linear-gradient(to bottom, #ebd499, #bd9652); border: 1px solid var(--game-mint-checked-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:checked::part(label) { color: var(--game-mint-checked-ink); }
+button.game-button.mint:hover::part(face) { background: linear-gradient(to bottom, #617d75, #274442); border: 1px solid var(--game-mint-hover-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:hover::part(label) { color: var(--game-mint-hover-ink); }
+button.game-button.mint:active::part(face) { background: linear-gradient(to bottom, #274442, #4d6d66); border: 1px solid var(--game-mint-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:active::part(label) { color: var(--game-mint-active-ink); }
+button.game-button.mint:disabled::part(face) { background: linear-gradient(to bottom, #3a5854, #274442); border: 1px solid var(--game-mint-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:disabled::part(label) { color: var(--game-mint-disabled-ink); }
+button.game-button.mint:checked:hover::part(face) { background: linear-gradient(to bottom, #ecd8a2, #bd9652); border: 1px solid var(--game-mint-checked-hover-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:checked:hover::part(label) { color: var(--game-mint-checked-hover-ink); }
+button.game-button.mint:checked:active::part(face) { background: linear-gradient(to bottom, #bd9652, #ebd499); border: 1px solid var(--game-mint-checked-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:checked:active::part(label) { color: var(--game-mint-checked-active-ink); }
+button.game-button.mint:checked:disabled::part(face) { background: linear-gradient(to bottom, #d4b575, #bd9652); border: 1px solid var(--game-mint-checked-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:checked:disabled::part(label) { color: var(--game-mint-checked-disabled-ink); }
+button.game-button.mint:hover:active::part(face) { background: linear-gradient(to bottom, #274442, #617d75); border: 1px solid var(--game-mint-hover-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:hover:active::part(label) { color: var(--game-mint-hover-active-ink); }
+button.game-button.mint:hover:disabled::part(face) { background: linear-gradient(to bottom, #44605b, #274442); border: 1px solid var(--game-mint-hover-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:hover:disabled::part(label) { color: var(--game-mint-hover-disabled-ink); }
+button.game-button.mint:active:disabled::part(face) { background: linear-gradient(to bottom, #3a5854, #4d6d66); border: 1px solid var(--game-mint-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:active:disabled::part(label) { color: var(--game-mint-active-disabled-ink); }
+button.game-button.mint:checked:hover:active::part(face) { background: linear-gradient(to bottom, #bd9652, #ecd8a2); border: 1px solid var(--game-mint-checked-hover-active-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:checked:hover:active::part(label) { color: var(--game-mint-checked-hover-active-ink); }
+button.game-button.mint:checked:hover:disabled::part(face) { background: linear-gradient(to bottom, #d4b77a, #bd9652); border: 1px solid var(--game-mint-checked-hover-disabled-edge); box-shadow: 0 2px 2px #00081146; keylines: #ffffff35 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:checked:hover:disabled::part(label) { color: var(--game-mint-checked-hover-disabled-ink); }
+button.game-button.mint:checked:active:disabled::part(face) { background: linear-gradient(to bottom, #d4b575, #ebd499); border: 1px solid var(--game-mint-checked-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:checked:active:disabled::part(label) { color: var(--game-mint-checked-active-disabled-ink); }
+button.game-button.mint:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #44605b, #617d75); border: 1px solid var(--game-mint-hover-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:hover:active:disabled::part(label) { color: var(--game-mint-hover-active-disabled-ink); }
+button.game-button.mint:checked:hover:active:disabled::part(face) { background: linear-gradient(to bottom, #d4b77a, #ecd8a2); border: 1px solid var(--game-mint-checked-hover-active-disabled-edge); box-shadow: none; keylines: #ffffff14 #ffffff00 #0614235a #ffffff00; }
+button.game-button.mint:checked:hover:active:disabled::part(label) { color: var(--game-mint-checked-hover-active-disabled-ink); }
+button.game-button.mint::part(focus) { border: 1px solid var(--game-mint-focus); background: transparent; box-shadow: none; }
+
+/* The skins a subtree takes by class (.skin-ivory for the shell, .skin-blue and .skin-slate for Sudoku): its editors, its default text and its fonts. A game's skin follows the shell's, so the nearer skin wins where both match. */
+.skin-ivory label { color: var(--skin-ivory-text); font-family: content; font-size: 14px; font-weight: 400; }
+.skin-ivory text-box { color: var(--skin-ivory-field-text); font-family: content; font-size: 16px; font-weight: 400; }
+.skin-ivory text-box::part(face) { background: #fcfdfa; border: 1px solid var(--skin-ivory-field-edge); border-radius: 4px; }
+.skin-ivory text-box:focus-visible { outline: 1px solid var(--skin-ivory-focus); }
+.skin-mint label { color: var(--skin-mint-text); font-family: content; font-size: 14px; font-weight: 400; }
+.skin-mint text-box { color: var(--skin-mint-field-text); font-family: content; font-size: 16px; font-weight: 400; }
+.skin-mint text-box::part(face) { background: #0c1b2b; border: 1px solid var(--skin-mint-field-edge); border-radius: 4px; }
+.skin-mint text-box:focus-visible { outline: 1px solid var(--skin-mint-focus); }
+.skin-blue label { color: var(--skin-blue-text); font-family: content; font-size: 14px; font-weight: 400; }
+.skin-blue text-box { color: var(--skin-blue-field-text); font-family: content; font-size: 16px; font-weight: 400; }
+.skin-blue text-box::part(face) { background: #fcfdfa; border: 1px solid var(--skin-blue-field-edge); border-radius: 4px; }
+.skin-blue text-box:focus-visible { outline: 1px solid var(--skin-blue-focus); }
+.skin-slate label { color: var(--skin-slate-text); font-family: content; font-size: 14px; font-weight: 400; }
+.skin-slate text-box { color: var(--skin-slate-field-text); font-family: content; font-size: 16px; font-weight: 400; }
+.skin-slate text-box::part(face) { background: #0c1b2b; border: 1px solid var(--skin-slate-field-edge); border-radius: 4px; }
+.skin-slate text-box:focus-visible { outline: 1px solid var(--skin-slate-focus); }
+
+/* The Settings screen's gold slider (track-bar.setting), gold box (check-box.setting) and card backs (button.card-back). */
+track-bar.setting::part(track) { background: #e2d6a6; border: 1px solid var(--setting-groove-edge); box-shadow: none; }
+track-bar.setting::part(fill) { background: #c99228; border: none; box-shadow: none; }
+track-bar.setting:disabled::part(fill) { background: #beb496; }
+track-bar.setting::part(thumb) { background: linear-gradient(to bottom, #fff4d6 0%, #ffe2a0 48%, #f2c766 52%, #ffe9b4 100%); border: 1px solid var(--gloss-gold-edge); keylines: none; box-shadow: 0 2px 2px #0a122846, 0 1px 3px #00000050; }
+track-bar.setting:disabled::part(thumb) { background: linear-gradient(to bottom, #d0ccc1 0%, #d0c3a4 48%, #c9b484 52%, #d0c6af 100%); border: 1px solid var(--gloss-gold-edge); keylines: none; box-shadow: 0 1px 3px #00000050; }
+track-bar.setting::part(focus) { border: 2px solid var(--setting-slider-focus); background: transparent; box-shadow: none; }
+check-box.setting::part(indicator) { background: #fffdf0; border: 1.5px solid var(--setting-box-edge); box-shadow: none; }
+check-box.setting:hover::part(indicator) { background: #fff6d6; }
+check-box.setting:checked::part(indicator) { background: linear-gradient(to bottom, #fff4d6 0%, #ffe2a0 48%, #f2c766 52%, #ffe9b4 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+check-box.setting:checked:hover::part(indicator) { background: linear-gradient(to bottom, #fffae6 0%, #ffeab2 48%, #f8d278 52%, #fff0c8 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: 0 2px 2px #0a122846; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+check-box.setting:checked:active::part(indicator) { background: linear-gradient(to bottom, #f2c766 0%, #f2c766 48%, #ffe2a0 52%, #fff4d6 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+check-box.setting:checked:disabled::part(indicator) { background: linear-gradient(to bottom, #d0ccc1 0%, #d0c3a4 48%, #c9b484 52%, #d0c6af 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+check-box.setting:checked:hover:active::part(indicator) { background: linear-gradient(to bottom, #f8d278 0%, #f8d278 48%, #ffeab2 52%, #fffae6 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+check-box.setting:checked:hover:disabled::part(indicator) { background: linear-gradient(to bottom, #d0d0ca 0%, #d0c7ae 48%, #ccba8e 52%, #d0caba 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff96 #ffffff00 #ffffff00; }
+check-box.setting:checked:active:disabled::part(indicator) { background: linear-gradient(to bottom, #c9b484 0%, #c9b484 48%, #d0c3a4 52%, #d0ccc1 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+check-box.setting:checked:hover:active:disabled::part(indicator) { background: linear-gradient(to bottom, #ccba8e 0%, #ccba8e 48%, #d0c7ae 52%, #d0d0ca 100%); border: 1px solid var(--gloss-gold-edge); box-shadow: none; keylines: #ffffff00, #ffffff1e #ffffff00 #ffffff00; }
+check-box.setting::part(label) { color: var(--settings-ink); }
+check-box.setting:disabled::part(label) { color: var(--settings-ink-disabled); }
+check-box.setting::part(focus) { border: 2px solid var(--setting-box-focus); background: transparent; box-shadow: none; }
+button.card-back::part(face) { border: 2px solid var(--card-back-hover); background: transparent; box-shadow: none; }
+button.card-back:checked::part(face) { border: 3px solid var(--card-back-chosen); }
+button.card-back::part(focus) { border: 1px solid var(--card-back-focus); background: transparent; box-shadow: none; }
+
+/* Help's links (button.help-glyph: the ? on the shelf, the close marks) and topic headings (button.topic-heading). */
+button.help-glyph { text-shadow: 1px 1.5px 0 #0000006e; }
+button.help-glyph { glyph-color: var(--help-glyph-ink); }
+button.help-glyph::part(label) { color: var(--help-glyph-ink); }
+button.help-glyph.help-link { glyph-color: var(--help-link-ink); }
+button.help-glyph.help-link::part(label) { color: var(--help-link-ink); }
+button.help-glyph.card-mark { glyph-color: var(--card-mark-ink); }
+button.help-glyph.card-mark::part(label) { color: var(--card-mark-ink); }
+button.help-glyph:hover::part(label) { color: var(--help-glyph-hot); }
+button.help-glyph.help-link:hover::part(label) { color: var(--help-glyph-hot); }
+button.help-glyph.card-mark:hover::part(label) { color: var(--help-glyph-hot); }
+button.topic-heading::part(face) { background: #f4ebaf; border: none; box-shadow: none; }
+button.topic-heading:hover::part(face) { background: #ece29c; }
+button.topic-heading::part(label) { color: var(--help-ink); muted-color: var(--help-mark); }
+button.topic-heading::part(focus) { border: 1px solid var(--help-heading-focus); background: transparent; box-shadow: none; }
+label.help-text { color: var(--help-ink); }
+label.settings-text { color: var(--settings-ink); }
+label.settings-heading { color: var(--settings-heading); }

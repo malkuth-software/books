@@ -43,8 +43,8 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
      - new test: books/pocketlibrary/tests/view_input_tests.cpp (ctest `pocketlibrary_view_input`).
    - **Removed `Control::set_child_index`** (cp28): `set_child_index_from_top(id, 0)`.
    - **Application-first main:**
-     - `Application::run` is a member, so main calls `Application::create` (GUI.Forms' default theme for now;
-       PlaySuite's theme is still to carry over), builds
+     - `Application::run` is a member, so main calls `Application::create` (with PlaySuite's theme package over
+       Windows Professional), builds
        the window with the application, and runs it;
      - then it releases the run state, the root and the application, and calls `Application::shutdown()`.
    - **theme.hpp:** no file needs it (no complete Theme use outside headers that reach it).
@@ -74,8 +74,8 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
 - **STXlib boundary types:** none consumed yet. When public signatures move to STXlib's owned span, string or
   result types (A2), the LiveSurface lease (`pixels()`), `load_bgra32_premultiplied` and the text-mask call
   sites follow.
-- **Shell parity with PlaySuite:** the shell is still a copy. PlaySuite's later shell work (the theme package,
-  which Pocket Library should take (see Risks), .form window, held keys, business card, shelf glide) is not carried over. That is a product choice, not a
+- **Shell parity with PlaySuite:** the shell is still a copy. PlaySuite's later shell work (the skinned controls the theme
+  package styles, .form window, held keys, business card, shelf glide) is not carried over. That is a product choice, not a
   conformance need.
 - **Harness:** template_harness main must take `claude/csm-ccache-pch-main` first (owner prerequisite).
 
@@ -102,6 +102,7 @@ portable core (`-DGAMES_BUILD_APPLICATION=OFF`) is unaffected by this branch.
 
 Tests that should cover it:
 - pocketlibrary_view_input;
+- playsuite_theme (the package compiles with no finding but W201);
 - pocketlibrary_view_contract (the real view headless);
 - pocketlibrary_library, audio_policy, dogfood;
 - the native smoke `pocketlibrary --smoke` (the Application-first main);
@@ -113,10 +114,13 @@ Tests that should cover it:
   identifiers, property setters, getters of property cells) and by the PlaySuite cherry-picks. A cell read
   spelled as a call on a product-held control, and not caught by the sweep, shows only at compile time.
   The same goes for a signature that changed type but kept its name.
-- **Theme: still to do.** Pocket Library should use PlaySuite's theme (the package in PlaySuite's
-  themes/playsuite, `games::playsuite_theme()`), as PlaySuite does for its capsule and help. This branch does not
-  have it yet: main uses `ApplicationConfig{}`, GUI.Forms' default look. Carrying it over means PlaySuite's
-  themes/playsuite, src/playsuite_theme.*, tools/make_theme.py and the `gui_forms_add_theme` build step (PlaySuite
-  82906c2), then passing the package in `ApplicationConfig::theme.packages` as PlaySuite's main does.
+- **Theme.** Pocket Library's look is PlaySuite's theme package, copied as the shell is: themes/playsuite and
+  tools/make_theme.py (byte for byte; `make_theme.py --check` passes here), `gui_forms_add_theme` on the
+  pocketlibrary target, and main creating the application with the package over Windows Professional (a
+  refusal reported, then the base theme) and forcing the light scheme per window, as PlaySuite's main does.
+  The sheet's skin rules (`.skin-*`, `gloss`) style PlaySuite's reworked shell controls; Pocket's shell copy
+  still paints those with its own C++ painters (`games_theme`), so until that shell work is carried over the
+  package changes the stock controls (search field, check boxes, sliders) and the C++-painted parts look as
+  before. Check by eye against PlaySuite.
 - The 51 accessors that delete their rvalue overload can refuse a call on a temporary; only a compile shows
   these.
