@@ -34,7 +34,7 @@ class TextSprites {
     // Call outside painting (from a timer). Returns true when new lettering became ready.
     bool update(gf::Window& window);
     [[nodiscard]] bool waiting() const;
-    void release(gf::Window& window);
+    void release(gf::SurfaceRoot& window);
     std::function<void()> request_update;
 
   private:

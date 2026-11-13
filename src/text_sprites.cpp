@@ -112,7 +112,7 @@ bool TextSprites::update(gf::Window& window) {
     }
     return loaded;
 }
-void TextSprites::release(gf::Window& window) {
+void TextSprites::release(gf::SurfaceRoot& window) {
     for (const std::pair<const std::string, Sprite>& entry : ready_)
         if (entry.second.image.value)
             static_cast<void>(window.remove_image(entry.second.image));

@@ -39,7 +39,7 @@ static std::uint32_t key_code(const std::string& name) {
     return (*found).second;
 }
 static void invalidate_capture(gf::Control& control) {
-    if(!control.visible()) return;
+    if(!control.visible.read()) return;
     control.invalidate(gf::Dirty::paint);
     for(const std::shared_ptr<gf::Control>& child:control.children()) invalidate_capture(*child);
 }
@@ -59,7 +59,7 @@ static void capture_frame(gf::Window& window,const std::filesystem::path& path) 
     std::ofstream output(path,std::ios::binary|std::ios::trunc);
     output<<"P6\n"<<(*frame).width()<<' '<<(*frame).height()<<"\n255\n";
     const std::span<std::byte> pixels=(*frame).pixels();
-    const bool bgra=(*frame).channel_order()==gf::FramebufferChannelOrder::bgra;
+    const bool bgra=true; // every framebuffer is BGRA8 since GUI.Forms 0.5
     for(std::uint32_t y=0;y<(*frame).height();++y) {
         const unsigned char* row=reinterpret_cast<const unsigned char*>(pixels.data()+y*(*frame).row_bytes());
         for(std::uint32_t x=0;x<(*frame).width();++x) {

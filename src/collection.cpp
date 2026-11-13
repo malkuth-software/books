@@ -28,18 +28,18 @@ void Collection::initialize_control_tree() {
     gf::on(model_.reduced.invoked(), *this, &Collection::toggle, 2);
     gf::on(model_.settings.invoked(), *this, &Collection::toggle, 3);
     help_link_ = gf::make_control<HelpGlyph>(gf::StableId("collection.help"), "?");
-    (*help_link_).set_font({gf::FontRole::content, 32, 700, false});
+    (*help_link_).font = gf::FontSpec{gf::FontRole::content, 32, 700, false};
     (*help_link_).set_ink(gf::Color::rgba(240, 192, 84));
-    (*help_link_).set_accessible_name("Help (H)");
+    (*help_link_).accessible_name = "Help (H)";
     (*help_link_).set_paint_plane(gf::PaintPlane::overlay);
     gf::on((*help_link_).clicked(), *this, &Collection::clicked_help);
     help_ = gf::make_control<HelpBook>(gf::StableId("collection.help-book"));
     (*help_).close = std::bind_front(&Collection::close_help, this);
-    (*help_).set_visible(false);
+    (*help_).visible = false;
     settings_ = gf::make_control<SettingsSheet>(gf::StableId("collection.settings"));
     (*settings_).bind_masters(model_);
     (*settings_).close = std::bind_front(&Collection::close_settings, this);
-    (*settings_).set_visible(false);
+    (*settings_).visible = false;
     add_child(help_link_);
     add_child(help_);
     add_child(settings_);
@@ -71,7 +71,7 @@ void Collection::on_attached_to_window() {
     last_tick_ = std::chrono::steady_clock::now();
     (*timer_).start();
 }
-void Collection::on_detaching_from_window(gf::Window& window) noexcept {
+void Collection::on_detaching_from_window(gf::SurfaceRoot& window) noexcept {
     if (timer_)
         (*timer_).stop();
     timer_.reset();
@@ -268,9 +268,9 @@ bool Collection::overlay(const std::shared_ptr<gf::Control>& child) const {
 void Collection::visibility() {
     for (const std::shared_ptr<gf::Control>& child : children())
         if (!overlay(child))
-            (*child).set_visible(false);
-    (*view(active_)).set_visible(true);
-    (*capsule_).set_visible(true);
+            (*child).visible = false;
+    (*view(active_)).visible = true;
+    (*capsule_).visible = true;
     preferences();
     invalidate(gf::Dirty::layout | gf::Dirty::paint);
 }
@@ -291,7 +291,7 @@ void Collection::arrange(gf::Rect b) {
     // until they move.
     const bool on_rail = railed(active_);
     for (const std::shared_ptr<gf::Control>& child : children())
-        if (!overlay(child) && (*child).visible())
+        if (!overlay(child) && (*child).visible.read())
             set_child_layout(child, on_rail ? below : full);
     gf::Rect capsule = (*capsule_).placement({0, 0, b.width - 48, on_rail ? current_rail_height_ : 60.0});
     if (on_rail)
@@ -374,7 +374,7 @@ void Collection::show_settings() {
     close_help();
     const bool was_open = settings_open();
     (*settings_).show_for(std::string(entry_info(active_).title), source(active_));
-    (*settings_).set_visible(true);
+    (*settings_).visible = true;
     model_.settings.set_checked(true);
     if (!was_open && attached_window()) {
         settings_focus_ = (*attached_window()).begin_focus_scope(settings_);
@@ -388,7 +388,7 @@ void Collection::close_settings() {
     if (attached_window() && settings_focus_)
         static_cast<void>((*attached_window()).end_focus_scope(settings_focus_));
     settings_focus_ = {};
-    (*settings_).set_visible(false);
+    (*settings_).visible = false;
     model_.settings.set_checked(false);
     refresh_commands();
     invalidate(gf::Dirty::paint);
@@ -400,7 +400,7 @@ void Collection::show_help(std::string_view topic) {
     close_settings();
     const bool was_open = help_open();
     (*help_).select(static_cast<int>(active_), topic);
-    (*help_).set_visible(true);
+    (*help_).visible = true;
     if (!was_open && attached_window())
         help_focus_ = (*attached_window()).begin_focus_scope(help_);
     invalidate(gf::Dirty::layout | gf::Dirty::paint);
@@ -411,7 +411,7 @@ void Collection::close_help() {
     if (attached_window() && help_focus_)
         static_cast<void>((*attached_window()).end_focus_scope(help_focus_));
     help_focus_ = {};
-    (*help_).set_visible(false);
+    (*help_).visible = false;
     invalidate(gf::Dirty::paint);
 }
 } // namespace games

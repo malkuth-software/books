@@ -176,8 +176,8 @@ void paint_glyph(gf::Painter& p, gf::Rect r, Glyph glyph, gf::Color ink, bool cr
 void paint_entry_emblem(gf::Painter& p,gf::Rect r,Entry entry) { game_descriptor(entry).cover(p,r); }
 SuiteButton::SuiteButton(gf::StableId id, std::string text, GlossTone tone)
     : Button(std::move(id), std::move(text)), tone_(tone) {
-    set_use_mnemonic(false);
-    set_font({gf::FontRole::content, 13, 700, false, .2});
+    use_mnemonic = false;
+    font = gf::FontSpec{gf::FontRole::content, 13, 700, false, .2};
 }
 void SuiteButton::set_tone(GlossTone tone) {
     if (tone_ == tone)
@@ -212,21 +212,21 @@ void SuiteButton::set_switch(SwitchLook look, std::string on_name, std::string o
     off_name_ = std::move(off_name);
     if (first)
         gf::on(selected_changed(), *this, &SuiteButton::switched);
-    switched(selected());
+    switched(selected.read());
 }
 void SuiteButton::switched(bool on) {
-    set_accessible_name(on ? on_name_ : off_name_);
+    accessible_name = on ? on_name_ : off_name_;
     invalidate(gf::Dirty::paint);
 }
 bool SuiteButton::crossed() const {
-    return crossed_ || (look_ == SwitchLook::crossed_when_off && !selected()) ||
-           (look_ == SwitchLook::crossed_when_on && selected());
+    return crossed_ || (look_ == SwitchLook::crossed_when_off && !selected.read()) ||
+           (look_ == SwitchLook::crossed_when_on && selected.read());
 }
 bool SuiteButton::checked() const {
-    return checked_ || (look_ == SwitchLook::lit_when_on && selected());
+    return checked_ || (look_ == SwitchLook::lit_when_on && selected.read());
 }
 double SuiteButton::preferred_width() const {
-    const double chars = static_cast<double>(text().size());
+    const double chars = static_cast<double>(text.read().size());
     const double label = chars > 0 ? chars * 7.3 + 24 : 0;
     const double glyph = glyph_ != Glyph::none ? (label > 0 ? 22 : 34) : 0;
     return std::max(34.0, label + glyph);
@@ -244,24 +244,24 @@ void SuiteButton::on_paint(gf::Painter& p, gf::Rect) {
     }
     GlossTone tone = checked() ? GlossTone::gold : tone_;
     // A switch's selected state is its command's; other buttons show selection as focus.
-    const bool selection_cue = look_ == SwitchLook::none && selected();
+    const bool selection_cue = look_ == SwitchLook::none && selected.read();
     paint_gloss(p, r, radius, tone,
-                {hovered_visual(), pressed_visual(), enabled(), focus_cue_visible() || selection_cue});
-    gf::Color ink = gloss_ink(tone, enabled());
+                {hovered_visual(), pressed_visual(), enabled.read(), focus_cue_visible() || selection_cue});
+    gf::Color ink = gloss_ink(tone, enabled.read());
     double x = r.x + 10;
     const double shift = pressed_visual() ? 1 : 0;
     if (glyph_ != Glyph::none) {
         double s = std::min(20.0, r.height - 8);
-        double gx = text().empty() ? r.x + (r.width - s) * .5 : x;
+        double gx = text.read().empty() ? r.x + (r.width - s) * .5 : x;
         paint_glyph(p, {gx + shift, r.y + (r.height - s) * .5 + shift, s, s}, glyph_, ink,
                     crossed());
         x = gx + s + 4;
     }
-    if (!text().empty()) {
-        gf::FontSpec f = font();
-        gf::Size m = p.measure_text_utf8(text(), f);
+    if (!text.read().empty()) {
+        gf::FontSpec f = font.read();
+        gf::Size m = p.measure_text_utf8(text.read(), f);
         double tx = glyph_ == Glyph::none ? r.x + (r.width - m.width) * .5 : x;
-        p.draw_text_utf8({tx + shift, r.y + (r.height + f.size * .72) * .5 + shift}, text(), f,
+        p.draw_text_utf8({tx + shift, r.y + (r.height + f.size * .72) * .5 + shift}, text.read(), f,
                          ink);
     }
 }

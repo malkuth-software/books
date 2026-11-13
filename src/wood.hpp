@@ -25,7 +25,7 @@ std::vector<std::byte> make_wood(int w, int h, bool along_x, const WoodLook& loo
 class ShelfWood {
   public:
     void make(gf::Window& window);
-    void release(gf::Window& window);
+    void release(gf::SurfaceRoot& window);
     [[nodiscard]] bool ready() const {
         return wall.value != 0 && plank.value != 0;
     }

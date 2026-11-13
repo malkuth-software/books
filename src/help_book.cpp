@@ -8,35 +8,35 @@ namespace {
 std::shared_ptr<gf::Label> front_line(const std::string& id, std::string_view text, std::uint16_t weight) {
     std::shared_ptr<gf::Label> label =
         gf::make_control<gf::Label>(gf::StableId("help.front." + id), std::string(text));
-    (*label).set_font({gf::FontRole::content, 16, weight, false});
-    (*label).set_foreground(gf::Color::rgba(42, 38, 24));
-    (*label).set_text_wrapping(gf::TextWrapping::word);
+    (*label).font = gf::FontSpec{gf::FontRole::content, 16, weight, false};
+    (*label).fore_color = gf::Color::rgba(42, 38, 24);
+    (*label).text_wrapping = gf::TextWrapping::word;
     return label;
 }
 class TopicHeading final : public gf::Button {
   public:
     TopicHeading(gf::StableId id, std::string title) : Button(std::move(id), std::move(title)) {
-        set_font({gf::FontRole::content, 18, 600, false});
-        set_accessible_name(text());
+        font = gf::FontSpec{gf::FontRole::content, 18, 600, false};
+        accessible_name = text.read();
         // A disclosure: assistive technology hears whether its topic is open.
-        set_expanded_state(false);
+        expanded_state = false;
     }
     [[nodiscard]] bool expanded() const {
-        return expanded_state().value_or(false);
+        return expanded_state.read().value_or(false);
     }
     void on_paint(gf::Painter& p, gf::Rect) override {
         const gf::Rect r = client_rectangle();
         p.fill_rect(r, hovered_visual() ? gf::Color::rgba(236, 226, 156)
                                         : gf::Color::rgba(244, 235, 175));
-        p.draw_text_utf8({9, 25}, expanded() ? "−" : "+", font(), gf::Color::rgba(66, 58, 33));
-        p.draw_text_utf8({32, 25}, text(), font(), gf::Color::rgba(42, 38, 24));
+        p.draw_text_utf8({9, 25}, expanded() ? "−" : "+", font.read(), gf::Color::rgba(66, 58, 33));
+        p.draw_text_utf8({32, 25}, text.read(), font.read(), gf::Color::rgba(42, 38, 24));
         if (focus_cue_visible())
             p.stroke_rect({1, 1, r.width - 2, r.height - 2}, gf::Color::rgba(110, 91, 37), 1);
     }
 };
 } // namespace
 HelpGlyph::HelpGlyph(gf::StableId id, std::string glyph) : Button(std::move(id), std::move(glyph)) {
-    set_font({gf::FontRole::content, 26, 600, false});
+    font = gf::FontSpec{gf::FontRole::content, 26, 600, false};
 }
 void HelpGlyph::set_ink(gf::Color ink) {
     ink_ = ink;
@@ -44,16 +44,16 @@ void HelpGlyph::set_ink(gf::Color ink) {
 }
 void HelpGlyph::on_paint(gf::Painter& p, gf::Rect) {
     const gf::Rect r = client_rectangle();
-    const gf::Size size = p.measure_text_utf8(text(), font());
+    const gf::Size size = p.measure_text_utf8(text.read(), font.read());
     const gf::Point at{(r.width - size.width) * .5, (r.height - size.height) * .5 + size.height * .8};
     // A soft dark edge keeps the glyph readable over bright game art.
-    p.draw_text_utf8({at.x + 1, at.y + 1.5}, text(), font(), gf::Color::rgba(0, 0, 0, 110));
-    p.draw_text_utf8(at, text(), font(), hovered_visual() ? gf::Color::rgba(255, 224, 140) : ink_);
+    p.draw_text_utf8({at.x + 1, at.y + 1.5}, text.read(), font.read(), gf::Color::rgba(0, 0, 0, 110));
+    p.draw_text_utf8(at, text.read(), font.read(), hovered_visual() ? gf::Color::rgba(255, 224, 140) : ink_);
     if (hovered_visual() || focus_cue_visible())
         p.draw_line({8, r.height - 3}, {r.width - 8, r.height - 3}, ink_, 1);
 }
 HelpPages::HelpPages(gf::StableId id) : ScrollableControl(std::move(id)) {
-    set_auto_scroll(true);
+    auto_scroll = true;
     set_paint_plane(gf::PaintPlane::overlay);
 }
 void HelpPages::add_topic(int entry, std::string topic, std::string title,
@@ -64,10 +64,10 @@ void HelpPages::add_topic(int entry, std::string topic, std::string title,
         gf::make_control<TopicHeading>(gf::StableId("help.topic." + key), std::move(title));
     std::shared_ptr<gf::Label> label = gf::make_control<gf::Label>(
         gf::StableId("help.body." + key), std::string(body));
-    (*label).set_font({gf::FontRole::content, 17, 400, false});
-    (*label).set_foreground(gf::Color::rgba(42, 38, 24));
-    (*label).set_text_wrapping(gf::TextWrapping::word);
-    (*label).set_visible(false);
+    (*label).font = gf::FontSpec{gf::FontRole::content, 17, 400, false};
+    (*label).fore_color = gf::Color::rgba(42, 38, 24);
+    (*label).text_wrapping = gf::TextWrapping::word;
+    (*label).visible = false;
     (*heading).set_paint_plane(gf::PaintPlane::overlay);
     (*label).set_paint_plane(gf::PaintPlane::overlay);
     gf::on((*heading).clicked(), *this, &HelpPages::toggle, index);
@@ -139,8 +139,8 @@ void HelpPages::select(int entry, std::string_view topic) {
     order_.clear();
     order_.push_back(selected);
     for (int i = 0; i < static_cast<int>(bodies_.size()); ++i) {
-        (*bodies_[i]).set_visible(i == selected);
-        (*headings_[i]).set_expanded_state(i == selected);
+        (*bodies_[i]).visible = i == selected;
+        (*headings_[i]).expanded_state = i == selected;
         (*headings_[i]).invalidate(gf::Dirty::paint);
         if (i != selected)
             order_.push_back(i);
@@ -150,9 +150,9 @@ void HelpPages::select(int entry, std::string_view topic) {
 }
 void HelpPages::toggle(int index) {
     const std::size_t i = static_cast<std::size_t>(index);
-    const bool expanded = !(*bodies_[i]).visible();
-    (*bodies_[i]).set_visible(expanded);
-    (*headings_[i]).set_expanded_state(expanded);
+    const bool expanded = !(*bodies_[i]).visible.read();
+    (*bodies_[i]).visible = expanded;
+    (*headings_[i]).expanded_state = expanded;
     (*headings_[i]).invalidate(gf::Dirty::paint);
     invalidate(gf::Dirty::layout | gf::Dirty::paint);
 }
@@ -170,7 +170,7 @@ void HelpPages::arrange(gf::Rect bounds) {
     for (int index : order_) {
         layout.push_back({headings_[index], {0, y, width, 36}});
         y += 44;
-        if ((*bodies_[index]).visible()) {
+        if ((*bodies_[index]).visible.read()) {
             const double height =
                 std::max(24.0, (*bodies_[index]).measure({width - 16, 100000}).height);
             layout.push_back({bodies_[index], {8, y, width - 16, height}});
@@ -206,7 +206,7 @@ void HelpBook::initialize_control_tree() {
     pages_ = gf::make_control<HelpPages>(gf::StableId("help.pages"));
     close_ = gf::make_control<HelpGlyph>(gf::StableId("help.close"), "×");
     (*close_).set_paint_plane(gf::PaintPlane::overlay);
-    (*close_).set_accessible_name("Close help (H or Escape)");
+    (*close_).accessible_name = "Close help (H or Escape)";
     gf::on((*close_).clicked(), *this, &HelpBook::clicked_close);
     add_child(pages_);
     add_child(close_);
@@ -230,7 +230,7 @@ void HelpBook::arrange(gf::Rect bounds) {
     set_child_layout(close_, {bounds.width - 48, 9, 36, 36});
     set_child_layout(pages_, {20, 62, bounds.width - 36, bounds.height - 82});
 }
-void HelpBook::on_detaching_from_window(gf::Window& window) noexcept {
+void HelpBook::on_detaching_from_window(gf::SurfaceRoot& window) noexcept {
     sheet_.release(window);
 }
 void HelpBook::on_paint(gf::Painter& p, gf::Rect) {

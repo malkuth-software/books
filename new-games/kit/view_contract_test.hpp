@@ -261,14 +261,14 @@ int run_view_contract(const char* name, const ViewOptions& view_options, const C
 
         // 7. Hidden behind the shelf: no timer callbacks, no frames. Then it resumes.
         (*view).set_cabinet(false, false, false, true);
-        (*view).set_visible(false);
+        (*view).visible = false;
         const std::uint64_t hidden = contract_generation(surface);
         const std::uint64_t callbacks = window.metrics_snapshot().callbacks_emitted;
         static_cast<void>(window.poll_frame_schedule(gf::FrameClock::now() + std::chrono::seconds(2)));
         contract_require(window.metrics_snapshot().callbacks_emitted == callbacks,
                          "a hidden game has no timer callbacks");
         contract_require(contract_generation(surface) == hidden, "a hidden game publishes nothing");
-        (*view).set_visible(true);
+        (*view).visible = true;
         (*view).set_cabinet(true, false, false, true);
         gf::LiveSurfaceFrame resumed = contract_next_frame(window, surface, hidden, "a frame after returning from the shelf");
         contract_require(resumed.width() > 0, "the game resumes with its surface");

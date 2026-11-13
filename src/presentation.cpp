@@ -23,9 +23,9 @@ gf::Color game_accent(int game) {
 }
 GameButton::GameButton(gf::StableId id, std::string label)
     : Button(std::move(id), std::move(label)) {
-    set_font({gf::FontRole::content, 14, 600, false, .1});
-    set_use_mnemonic(false);
-    set_content_padding({9, 2, 9, 2});
+    font = gf::FontSpec{gf::FontRole::content, 14, 600, false, .1};
+    use_mnemonic = false;
+    content_padding = gf::Insets{9, 2, 9, 2};
 }
 void GameButton::set_skin(ButtonSkin skin) {
     skin_ = skin;
@@ -34,7 +34,7 @@ void GameButton::set_skin(ButtonSkin skin) {
 void GameButton::on_paint(gf::Painter& p, gf::Rect) {
     gf::Rect b = client_rectangle();
     gf::Rect r{1, 1, b.width - 2, b.height - 3};
-    bool down = pressed_visual(), hot = hovered_visual(), chosen = selected(),
+    bool down = pressed_visual(), hot = hovered_visual(), chosen = selected.read(),
          light = skin_ == ButtonSkin::ivory || skin_ == ButtonSkin::blue;
     gf::Color top = light ? gf::Color::rgba(247, 246, 235) : gf::Color::rgba(56, 79, 99),
               bottom = light ? gf::Color::rgba(212, 218, 202) : gf::Color::rgba(30, 49, 69),
@@ -63,7 +63,7 @@ void GameButton::on_paint(gf::Painter& p, gf::Rect) {
     }
     if (down)
         std::swap(top, bottom);
-    if (!enabled()) {
+    if (!enabled.read()) {
         top = mix(top, bottom, .5);
         ink = mix(ink, bottom, .55);
         border = mix(border, bottom, .4);
@@ -83,7 +83,7 @@ void GameButton::on_paint(gf::Painter& p, gf::Rect) {
                 1);
     p.draw_line({r.x + 4, r.y + r.height - 1}, {r.x + r.width - 4, r.y + r.height - 1},
                 gf::Color::rgba(6, 20, 35, light ? 30 : 90), 1);
-    paint_button_content(p, r, text(), ink, {down ? 1.0 : 0, down ? 1.0 : 0}, chosen);
+    paint_button_content(p, r, text.read(), ink, {down ? 1.0 : 0, down ? 1.0 : 0}, chosen);
     if (focus_cue_visible())
         p.stroke_rounded_rect(
             {4, 4, b.width - 8, b.height - 9}, 3,

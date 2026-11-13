@@ -57,6 +57,6 @@ class HelpBook final : public gf::Control {
     std::shared_ptr<HelpGlyph> close_;
     PaperSheet sheet_;
     void clicked_close();
-    void on_detaching_from_window(gf::Window& window) noexcept override;
+    void on_detaching_from_window(gf::SurfaceRoot& window) noexcept override;
 };
 } // namespace games

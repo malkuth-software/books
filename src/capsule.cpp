@@ -19,19 +19,19 @@ SpriteSpec title_spec(const std::string& title) {
 } // namespace
 CommandCapsule::CommandCapsule(gf::StableId id, TextSprites& sprites)
     : Control(std::move(id)), sprites_(sprites) {
-    set_accessible_name("Game commands");
+    accessible_name = "Game commands";
     set_paint_plane(gf::PaintPlane::overlay);
 }
 void CommandCapsule::initialize_control_tree() {
     back_ = gf::make_control<SuiteButton>(gf::StableId("capsule.back"), "", GlossTone::smoke);
     (*back_).set_glyph(Glyph::back);
     (*back_).set_radius(SuiteButton::round);
-    (*back_).set_accessible_name("Back");
+    (*back_).accessible_name = "Back";
     add_child(back_);
     more_ = gf::make_control<SuiteButton>(gf::StableId("capsule.more"), "", GlossTone::smoke);
     (*more_).set_glyph(Glyph::more);
     (*more_).set_radius(SuiteButton::round);
-    (*more_).set_accessible_name("Keep the commands open");
+    (*more_).accessible_name = "Keep the commands open";
     add_child(more_);
     for (int i = 0; i < 4; ++i) {
         switches_[i] = make_master_switch("capsule.", i);
@@ -67,8 +67,8 @@ void CommandCapsule::set_game(std::string title, std::vector<GameCommand> comman
                commands[i].primary == commands_[i].primary && commands[i].toggle == commands_[i].toggle;
     if (same) {
         for (std::size_t i = 0; i < commands.size(); ++i) {
-            if ((*buttons_[i]).enabled() != commands[i].enabled)
-                (*buttons_[i]).set_enabled(commands[i].enabled);
+            if ((*buttons_[i]).enabled.read() != commands[i].enabled)
+                (*buttons_[i]).enabled = commands[i].enabled;
             (*buttons_[i]).set_checked(commands[i].checked);
         }
         commands_ = std::move(commands);
@@ -85,10 +85,10 @@ void CommandCapsule::set_game(std::string title, std::vector<GameCommand> comman
                                           c.primary ? (c.toggle ? GlossTone::navy : GlossTone::gold)
                                                     : GlossTone::smoke);
         (*b).set_radius(15);
-        (*b).set_font({gf::FontRole::content, 13, 700, false, .2});
-        (*b).set_enabled(c.enabled);
+        (*b).font = gf::FontSpec{gf::FontRole::content, 13, 700, false, .2};
+        (*b).enabled = c.enabled;
         (*b).set_checked(c.checked);
-        (*b).set_accessible_name(c.label);
+        (*b).accessible_name = c.label;
         add_child(b);
         gf::on((*b).clicked(), *this, &CommandCapsule::on_command, static_cast<int>(buttons_.size()));
         buttons_.push_back(std::move(b));
@@ -181,7 +181,7 @@ void CommandCapsule::arrange(gf::Rect bounds) {
     for (const Slot& s : slots_) {
         const bool inside = s.rect.x + s.rect.width <= kMargin + pill.width - kPad + .5 &&
                             s.rect.y + s.rect.height <= kMargin + pill.height - kPad + .5;
-        (*s.button).set_visible(inside);
+        (*s.button).visible = inside;
         set_child_layout(s.button, s.rect);
     }
 }

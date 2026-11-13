@@ -113,6 +113,6 @@ class SettingsSheet final : public gf::Control {
     PaperSheet sheet_;
     void clicked_close();
     void on_attached_to_window() override;
-    void on_detaching_from_window(gf::Window& window) noexcept override;
+    void on_detaching_from_window(gf::SurfaceRoot& window) noexcept override;
 };
 } // namespace games
