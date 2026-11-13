@@ -1,5 +1,5 @@
 // PlaySuite's theme package (themes/playsuite), Pocket Library's look: it compiles over
-// Windows Professional with no finding but W201 (an error refuses the theme; a warning
+// Windows Professional with no finding but W201 and W402 (an error refuses the theme; a warning
 // drops a declaration, and the look would no longer be PlaySuite's exactly), the
 // application's theme carries the package's rules beyond the base theme's, and a window
 // in the light scheme shows that theme with no fallback; and the shell's controls carry
@@ -43,7 +43,10 @@ int main() {
         gf::ApplicationCreateResult created = gf::Application::create(std::move(config));
         std::size_t unexpected = 0;
         for (const gf::ThemeCompileDiagnostic& finding : created.findings) {
-            if (finding.code == "W201")
+            // W402 is GUI.Forms' at 96d3696: the package is light only and writes no dark
+            // rule, but the dark rules of the base it is layered over (windows_professional)
+            // are counted as the package's. The light scheme is forced, so nothing is dropped.
+            if (finding.code == "W201" || finding.code == "W402")
                 continue;
             ++unexpected;
             std::cerr << finding.code << ' ' << finding.name << ' ' << finding.file << ':' << finding.line << ':'
@@ -51,7 +54,7 @@ int main() {
                       << '\n';
         }
         require(static_cast<bool>(created), "the package is taken");
-        require(unexpected == 0, "no finding but W201");
+        require(unexpected == 0, "no finding but W201 and W402");
         {
             std::shared_ptr<gf::Control> root = gf::make_control<gf::Control>(gf::StableId("theme.root"));
             gf::Window window(*created.application, root, gf::Size{1060, 680});

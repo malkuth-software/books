@@ -377,7 +377,7 @@ def write_skins(sheet: Sheet) -> None:
                    [f"color: {text}", "font-family: content", "font-size: 14px", "font-weight: 400"])
         sheet.rule(f".skin-{skin} text-box",
                    [f"color: {field_text}", "font-family: content", "font-size: 16px", "font-weight: 400"])
-        sheet.rule(f".skin-{skin} text-box::part(face)",
+        sheet.rule(f".skin-{skin} text-box::part(well)",
                    [f"background: {hex_colour(field)}", f"border: 1px solid {edge}", "border-radius: 4px"])
         sheet.rule(f".skin-{skin} text-box:focus-visible", [f"outline: 1px solid {focus}"])
 

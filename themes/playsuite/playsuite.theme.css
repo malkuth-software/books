@@ -416,19 +416,19 @@ button.game-button.mint::part(focus) { border: 1px solid var(--game-mint-focus);
 /* The skins a subtree takes by class (.skin-ivory for the shell, .skin-blue and .skin-slate for Sudoku): its editors, its default text and its fonts. A game's skin follows the shell's, so the nearer skin wins where both match. */
 .skin-ivory label { color: var(--skin-ivory-text); font-family: content; font-size: 14px; font-weight: 400; }
 .skin-ivory text-box { color: var(--skin-ivory-field-text); font-family: content; font-size: 16px; font-weight: 400; }
-.skin-ivory text-box::part(face) { background: #fcfdfa; border: 1px solid var(--skin-ivory-field-edge); border-radius: 4px; }
+.skin-ivory text-box::part(well) { background: #fcfdfa; border: 1px solid var(--skin-ivory-field-edge); border-radius: 4px; }
 .skin-ivory text-box:focus-visible { outline: 1px solid var(--skin-ivory-focus); }
 .skin-mint label { color: var(--skin-mint-text); font-family: content; font-size: 14px; font-weight: 400; }
 .skin-mint text-box { color: var(--skin-mint-field-text); font-family: content; font-size: 16px; font-weight: 400; }
-.skin-mint text-box::part(face) { background: #0c1b2b; border: 1px solid var(--skin-mint-field-edge); border-radius: 4px; }
+.skin-mint text-box::part(well) { background: #0c1b2b; border: 1px solid var(--skin-mint-field-edge); border-radius: 4px; }
 .skin-mint text-box:focus-visible { outline: 1px solid var(--skin-mint-focus); }
 .skin-blue label { color: var(--skin-blue-text); font-family: content; font-size: 14px; font-weight: 400; }
 .skin-blue text-box { color: var(--skin-blue-field-text); font-family: content; font-size: 16px; font-weight: 400; }
-.skin-blue text-box::part(face) { background: #fcfdfa; border: 1px solid var(--skin-blue-field-edge); border-radius: 4px; }
+.skin-blue text-box::part(well) { background: #fcfdfa; border: 1px solid var(--skin-blue-field-edge); border-radius: 4px; }
 .skin-blue text-box:focus-visible { outline: 1px solid var(--skin-blue-focus); }
 .skin-slate label { color: var(--skin-slate-text); font-family: content; font-size: 14px; font-weight: 400; }
 .skin-slate text-box { color: var(--skin-slate-field-text); font-family: content; font-size: 16px; font-weight: 400; }
-.skin-slate text-box::part(face) { background: #0c1b2b; border: 1px solid var(--skin-slate-field-edge); border-radius: 4px; }
+.skin-slate text-box::part(well) { background: #0c1b2b; border: 1px solid var(--skin-slate-field-edge); border-radius: 4px; }
 .skin-slate text-box:focus-visible { outline: 1px solid var(--skin-slate-focus); }
 
 /* The Settings screen's gold slider (track-bar.setting), gold box (check-box.setting) and card backs (button.card-back). */
