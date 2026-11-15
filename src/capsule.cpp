@@ -181,7 +181,8 @@ bool CommandCapsule::step(double dt, bool inside, bool reduced) {
 }
 void CommandCapsule::arrange(gf::Rect bounds) {
     for (const std::shared_ptr<gf::Control>& child : children())
-        (*child).set_paint_plane(gf::PaintPlane::overlay);
+        if ((*child).paint_plane() != gf::PaintPlane::overlay)
+            (*child).set_paint_plane(gf::PaintPlane::overlay);
     // The composite lays out its parts (the pill) and its document children; the commands and
     // the title are placed here.
     CommandCapsuleControl::arrange(bounds);
@@ -193,7 +194,10 @@ void CommandCapsule::arrange(gf::Rect bounds) {
     for (const Slot& s : slots_) {
         const bool inside = s.rect.x + s.rect.width <= kMargin + pill.width - kPad + .5 &&
                             s.rect.y + s.rect.height <= kMargin + pill.height - kPad + .5;
-        (*s.button).visible = inside;
+        // Written only on a change, so a settled capsule (open under the pointer, or folded)
+        // leaves its buttons untouched between a press and its release.
+        if ((*s.button).visible.read() != inside)
+            (*s.button).visible = inside;
         set_child_layout(s.button, s.rect);
     }
 }

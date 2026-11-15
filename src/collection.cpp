@@ -60,8 +60,13 @@ void Collection::ensure_view(Entry entry) {
     // Card modules intentionally share a control and cabinet. Attach it only once.
     if (std::find(children().begin(), children().end(), created) == children().end()) {
         add_child(created);
-        // Topmost: the last of children() (index 0 from the top).
-        static_cast<void>(set_child_index_from_top((*created).runtime_id(), 0));
+        // Bottommost: the first of children(), below the capsule, the help link, help and
+        // settings, so the window's hit test finds those overlays before the full-window game
+        // (the paint plane orders only painting). The pre-0.6 call was set_child_index(id,
+        // size - 1), the bottom in Windows Forms' order; the 0.6 port had put it on top, and
+        // real clicks on the capsule went to the game.
+        const std::size_t bottom = children().size() - 1;
+        static_cast<void>(set_child_index_from_top((*created).runtime_id(), bottom));
     }
 }
 void Collection::on_attached_to_window() {
