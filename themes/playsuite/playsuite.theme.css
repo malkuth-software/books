@@ -184,6 +184,16 @@
   --help-mark: #423a21;
   --help-heading-focus: #6e5b25;
   --settings-heading: #8c6522;
+  --card-stock: #e9e3d2;
+  --card-stock-edge: #ccc4ae;
+}
+:root {
+  --card-ink: #1c1a16;
+  --card-soft-ink: #6e5b25;
+  --card-foil: #d6a028;
+  --card-remark-ink: #5a5242;
+  --card-shadow: #0000005a;
+  --card-focus: #d6a028c8;
 }
 
 /* The gloss (SuiteButton: the capsule, the shelf's switches, the settings chips, Rock Stack's buttons). A button.gloss carries its tone as a class; lit (checked) is gold whatever the tone; a pill or a circle (rounded-end) has no shine line. */
@@ -473,3 +483,17 @@ button.topic-heading::part(focus) { border: 1px solid var(--help-heading-focus);
 label.help-text { color: var(--help-ink); }
 label.settings-text { color: var(--settings-ink); }
 label.settings-heading { color: var(--settings-heading); }
+
+/* The business card (GUI.Forms' business-card: one card for every program). PlaySuite's card was bone stock with raised black ink, the name turning to gold foil under the pointer; GUI.Forms' card is flat (its first version), so the sheet keeps the stock, the inks and the foil and leaves the relief, the turn and the finish (docs/TOOLKIT_REQUESTS.md). */
+business-card::part(shadow) { background: var(--card-shadow); border: none; box-shadow: none; }
+business-card::part(stock) { background: var(--card-stock); border: 1px solid var(--card-stock-edge); box-shadow: none; }
+business-card::part(vendor_name) { color: var(--card-ink); }
+business-card:hover::part(vendor_name) { color: var(--card-foil); }
+business-card::part(rule) { background: var(--card-soft-ink); border: none; }
+business-card::part(product) { color: var(--card-ink); }
+business-card::part(website) { color: var(--card-soft-ink); }
+business-card:hover::part(website) { color: var(--card-foil); }
+business-card::part(remark) { color: var(--card-remark-ink); }
+business-card::part(close_mark) { color: var(--card-soft-ink); }
+business-card:hover::part(close_mark) { color: var(--card-foil); }
+business-card::part(focus) { border: 1px solid var(--card-focus); background: transparent; box-shadow: none; }

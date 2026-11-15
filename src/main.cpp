@@ -3,6 +3,7 @@
 #include "gui_forms/application.hpp"
 #include "gui_forms/paint_framebuffer.hpp"
 #include "playsuite_theme.hpp"  // generated from themes/playsuite (PlaySuite's look)
+#include <clocale>
 #include <fstream>
 #include "runtime_paths.hpp"
 #include <iostream>
@@ -226,6 +227,12 @@ static gf::ApplicationCreateResult create_application() {
     return fallback;
 }
 int main(int argc,char** argv) {
+#if defined(__linux__)
+    // The program, not GUI.Forms, chooses its locale (cp33: the host no longer calls setlocale):
+    // the environment's character type, so X input methods (ibus, fcitx) and compose sequences
+    // keep working in the search field.
+    std::setlocale(LC_CTYPE, "");
+#endif
     try {
         const games::dogfood::Options arguments = games::dogfood::parse_options(argc,argv);
         if (arguments.help) { std::cout << games::dogfood::usage(); return 0; }

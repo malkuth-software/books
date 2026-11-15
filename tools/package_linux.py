@@ -7,6 +7,9 @@ import subprocess
 import tarfile
 from package_common import ROOT, copy_resources, project_version, write_manifest
 
+# The LLVM runtime libraries a Linux build links (libunwind on musl only).
+LLVM_RUNTIME = ("libc++.so.1", "libc++abi.so.1", "libunwind.so.1")
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -30,6 +33,20 @@ def main():
                 pending.append(bundle / name)
     if not list(bundle.glob("libgui_forms_application.so*")):
         raise RuntimeError("Expected the GUI.Forms application library import")
+    # LLVM's libc++ 22 and libc++abi (and libunwind on musl): GUI.Forms builds against them on
+    # Linux (cp33) and Ubuntu's archive has no libc++ 22, so the bundle carries them beside the
+    # program, as macOS bundles its runtime dylibs, from where ldd resolves them.
+    resolved = subprocess.check_output(["ldd", str(bundle / "pocketlibrary")], text=True)
+    runtime = {}
+    for line in resolved.splitlines():
+        parts = line.split()
+        if len(parts) >= 3 and parts[1] == "=>" and parts[0] in LLVM_RUNTIME:
+            runtime[parts[0]] = Path(parts[2])
+    for name in ("libc++.so.1", "libc++abi.so.1"):
+        if name not in runtime:
+            raise RuntimeError("Expected the program to link " + name + " (libc++ 22)")
+    for name, source in runtime.items():
+        shutil.copy2(source, bundle / name)
     for binary in [bundle / "pocketlibrary"] + list(bundle.glob("*.so*")):
         subprocess.run(["patchelf", "--set-rpath", "$ORIGIN", str(binary)], check=True)
         subprocess.run(["strip", "--strip-unneeded", str(binary)], check=True)
@@ -37,6 +54,10 @@ def main():
         if "not found" in dependencies:
             raise RuntimeError(dependencies)
     copy_resources(args.build, args.toolkit, bundle)
+    # The bundled LLVM runtime's licences, as GUI.Forms' own Linux packages carry them.
+    llvm_notices = args.toolkit / "packaging/licenses/llvm"
+    for name, notice in (("LLVM-libcxx.txt", "libcxx-LICENSE.TXT"), ("LLVM-libcxxabi.txt", "libcxxabi-LICENSE.TXT")):
+        shutil.copy2(llvm_notices / notice, bundle / "licenses" / name)
     arch = "arm64" if platform.machine() == "aarch64" else "amd64"
     write_manifest(bundle, "Linux", arch)
     stem = "pocketlibrary-" + project_version() + "-linux-" + arch

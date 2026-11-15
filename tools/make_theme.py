@@ -360,6 +360,37 @@ def write_help(sheet: Sheet) -> None:
     sheet.rule("label.settings-heading", [f"color: {sheet.role('settings-heading', rgb(140, 101, 34))}"])
 
 
+# The business card: GUI.Forms' BusinessCard (cp33), on help's page and in the hand ------
+
+def write_business_card(sheet: Sheet) -> None:
+    sheet.comment("The business card (GUI.Forms' business-card: one card for every program). "
+                  "PlaySuite's card was bone stock with raised black ink, the name turning to gold "
+                  "foil under the pointer; GUI.Forms' card is flat (its first version), so the "
+                  "sheet keeps the stock, the inks and the foil and leaves the relief, the turn "
+                  "and the finish (docs/TOOLKIT_REQUESTS.md).")
+    stock = sheet.role("card-stock", rgb(233, 227, 210))
+    stock_edge = sheet.role("card-stock-edge", rgb(204, 196, 174))
+    ink = sheet.role("card-ink", rgb(28, 26, 22))
+    soft_ink = sheet.role("card-soft-ink", rgb(110, 91, 37))
+    foil = sheet.role("card-foil", rgb(214, 160, 40))
+    remark_ink = sheet.role("card-remark-ink", rgb(90, 82, 66))
+    shadow = sheet.role("card-shadow", rgb(0, 0, 0, 90))
+    focus = sheet.role("card-focus", rgb(214, 160, 40, 200))
+    sheet.rule("business-card::part(shadow)", [f"background: {shadow}", "border: none", "box-shadow: none"])
+    sheet.rule("business-card::part(stock)",
+               [f"background: {stock}", f"border: 1px solid {stock_edge}", "box-shadow: none"])
+    sheet.rule("business-card::part(vendor_name)", [f"color: {ink}"])
+    sheet.rule("business-card:hover::part(vendor_name)", [f"color: {foil}"])
+    sheet.rule("business-card::part(rule)", [f"background: {soft_ink}", "border: none"])
+    sheet.rule("business-card::part(product)", [f"color: {ink}"])
+    sheet.rule("business-card::part(website)", [f"color: {soft_ink}"])
+    sheet.rule("business-card:hover::part(website)", [f"color: {foil}"])
+    sheet.rule("business-card::part(remark)", [f"color: {remark_ink}"])
+    sheet.rule("business-card::part(close_mark)", [f"color: {soft_ink}"])
+    sheet.rule("business-card:hover::part(close_mark)", [f"color: {foil}"])
+    sheet.rule("business-card::part(focus)", [f"border: 1px solid {focus}", "background: transparent", "box-shadow: none"])
+
+
 # The skins: games_theme(ButtonSkin) in src/presentation.cpp ----------------------------
 
 def write_skins(sheet: Sheet) -> None:
@@ -389,6 +420,7 @@ def build() -> dict[str, str]:
     write_skins(sheet)
     write_settings(sheet)
     write_help(sheet)
+    write_business_card(sheet)
     css = sheet.text()
     digest = hashlib.sha256(css.encode("utf-8")).hexdigest()
     manifest = {
