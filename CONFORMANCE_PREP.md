@@ -76,7 +76,12 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
    from GUI.Forms controls (`gf::Button` faces through the theme, switches bound to the model), with the pill
    and the glyphs still hand-painted (expressible as theme parts and button images: product work) and the
    title in Barlow Condensed through the product's own text sprites. Interface text uses bundled faces only,
-   so the title is a **GUI.Forms gap or owner decision** (a bundled face, or admitted display faces).
+   so the title was a GUI.Forms gap. The owner settled it (2026-11-15): composites may load fonts, and
+   PlaySuite's capsule became a GUI.Forms composite (PlaySuite 44d6f6f, controls/command-capsule.control and
+   src/capsule_title_face.*). Pocket Library's capsule follows the same way once PlaySuite's is built and
+   settled; until then it is unchanged.
+   - themes/playsuite carries PlaySuite's card-parity rules (paper-fibre stock, copyright and remark inks),
+     byte-identical; Pocket Library still shows no business card.
 
 ## What still waits on GUI.Forms
 
@@ -152,8 +157,8 @@ Tests that should cover it:
   set_theme_override are gone; docs/TOOLKIT_REQUESTS.md lists the theme gaps). Not carried: the .form window
   and Collection::set_development (PlaySuite's form-made shell), the card-back choice and the business card
   (PlaySuite only). Check the look by eye against PlaySuite.
-- The Linux package fails its one-module check until the GUI.Forms pin carries claude/one-module, and the
-  configure fails until it carries the static libc++ link: intended.
+- The Linux package's one-module check and the static libc++ configure check pass only once the GUI.Forms
+  pin carries one-module (folded as 66f82629b) and the static libc++ link.
 - The libc++ check runs before `find_package`; a Linux tree configured without llvm22.cmake now stops at
   configure.
 - The 51 accessors that delete their rvalue overload can refuse a call on a temporary; only a compile shows
