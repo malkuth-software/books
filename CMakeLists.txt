@@ -8,8 +8,8 @@ if(NOT GAMES_RELEASE_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
   message(FATAL_ERROR "GAMES_RELEASE_VERSION must be a numeric major.minor.patch")
 endif()
 project(PocketLibrary VERSION ${GAMES_RELEASE_VERSION} LANGUAGES C CXX)
-# Windows finds a program's DLLs beside it: build every program and DLL, GUI.Forms'
-# Application and Threading included, into one folder.
+# Every program in one folder on Windows (GUI.Forms is one module and ships no DLL; any
+# other DLL a build makes is found beside the programs).
 if(WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 endif()

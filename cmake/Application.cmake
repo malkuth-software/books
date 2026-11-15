@@ -68,30 +68,18 @@ set_target_properties(pocketlibrary PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
 if(APPLE)
     set(library_resources "$<TARGET_BUNDLE_DIR:pocketlibrary>/Contents/Resources")
-    set(library_frameworks "$<TARGET_BUNDLE_DIR:pocketlibrary>/Contents/Frameworks")
-    set_target_properties(pocketlibrary PROPERTIES BUILD_RPATH "@executable_path/../Frameworks")
     set_source_files_properties(assets/PocketLibrary.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     target_sources(pocketlibrary PRIVATE assets/PocketLibrary.icns)
     set_target_properties(pocketlibrary PROPERTIES MACOSX_BUNDLE_ICON_FILE "PocketLibrary.icns")
 else()
     set(library_resources "$<TARGET_FILE_DIR:pocketlibrary>")
-    set(library_frameworks "$<TARGET_FILE_DIR:pocketlibrary>")
-    if(UNIX)
-        set_target_properties(pocketlibrary PROPERTIES BUILD_RPATH "$ORIGIN")
-    endif()
 endif()
+# GUI.Forms is one module (static archives linked into the program): no GUI.Forms library is
+# copied beside the executable and no rpath points at one.
 add_custom_command(TARGET pocketlibrary POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${library_frameworks}"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:GUIForms::Application>" "${library_frameworks}"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${GAMES_RUNTIME_ASSET_DIR}" "${library_resources}/assets"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${GUIForms_FONT_DIR}" "${library_resources}/fonts"
     VERBATIM)
-if(UNIX)
-    add_custom_command(TARGET pocketlibrary POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:GUIForms::Application>"
-            "${library_frameworks}/$<TARGET_SONAME_FILE_NAME:GUIForms::Application>"
-        VERBATIM)
-endif()
 add_executable(audio_policy_tests tests/audio_policy_tests.cpp)
 target_link_libraries(audio_policy_tests PRIVATE game_audio_adapters)
 add_test(NAME audio_policy COMMAND audio_policy_tests)
