@@ -19,7 +19,7 @@
 #include "gui_forms/live_surface.hpp"
 #include "gui_forms/threading.hpp"
 #include "gui_forms/timer.hpp"
-#include "routed_input.hpp"
+#include "gui_forms/events/key_events/key_events.hpp"
 
 #include <chrono>
 #include <memory>
@@ -35,7 +35,7 @@ struct Options {
     bool dev = false;     // a separate bookmarks file, for tests and development
 };
 
-class PocketLibraryView final : public games::RoutedInput<gf::Control>, public games::CommandSource {
+class PocketLibraryView final : public gf::Control, public games::CommandSource {
   public:
     PocketLibraryView(gf::StableId id, Options options);
     ~PocketLibraryView() override;
@@ -43,11 +43,12 @@ class PocketLibraryView final : public games::RoutedInput<gf::Control>, public g
     void initialize_control_tree();
     void arrange(gf::Rect bounds) override;
     void on_paint(gf::Painter& painter, gf::Rect damage) override;
-    void handle_pointer(gf::PointerEvent& event) override;
-    void handle_key(gf::KeyEvent& event) override;
-    void on_key_bubble(gf::KeyEvent& event) override {
-        handle_key(event);
-    }
+    void on_mouse_down(gf::MouseEventArgs& event) override;
+    void on_mouse_move(gf::MouseEventArgs& event) override;
+    void on_mouse_wheel(gf::MouseEventArgs& event) override;
+    void on_mouse_leave() override;
+    void on_key_down(gf::KeyEventArgs& event) override;
+    void on_key_bubble(gf::KeyEvent& event) override;
 
     // The shell calls these. activate: the game has just been shown; take the keyboard.
     void activate();
@@ -62,6 +63,8 @@ class PocketLibraryView final : public games::RoutedInput<gf::Control>, public g
     bool back() override;
 
   private:
+    void show_hover(int hover);
+    void key_down(gf::KeyEventArgs& event);
     Options options_;
     Library library_;
     Printer printer_;
