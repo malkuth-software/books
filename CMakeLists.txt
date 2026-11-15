@@ -15,6 +15,9 @@ if(WIN32)
 endif()
 set(GAMES_RUNTIME_ASSET_DIR "" CACHE PATH "Complete verified portable runtime assets")
 option(GAMES_BUILD_APPLICATION "Build the complete graphical library and UI tests" ON)
+# The capsule title loads Barlow Condensed through GUI.Forms' app-font API (claude/app-fonts,
+# 2558e326c); turn it off only to build against a GUI.Forms without that API.
+option(GAMES_GUI_FORMS_APP_FONTS "Load the capsule title's face through GUI.Forms' app-font API" ON)
 enable_testing()
 add_executable(dogfood_tests tests/dogfood_tests.cpp src/dogfood.cpp)
 target_include_directories(dogfood_tests PRIVATE src)
@@ -75,6 +78,8 @@ elseif(GAMES_BUILD_APPLICATION)
   # GUI.Forms' own Vorbis decoder; forced so an older build folder cannot keep stb.
   set(GUI_FORMS_AUDIO_VORBIS_BACKEND stx CACHE STRING "" FORCE)
   set(GUI_FORMS_BUILD_TEXT_MASKS ON CACHE BOOL "" FORCE)
+  # controls/command-capsule.control is compiled at build time (gui_forms_add_control).
+  set(GUI_FORMS_BUILD_FORM_COMPILER ON CACHE BOOL "" FORCE)
   set(GUI_FORMS_ENABLE_HARFBUZZ_TEXT ON CACHE BOOL "" FORCE)
   # Every host draws with GUI.Forms' CPU Skia (built from the pinned stx); the Win32
   # host requires it since stage SK3.

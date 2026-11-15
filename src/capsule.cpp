@@ -6,24 +6,24 @@ namespace games {
 namespace {
 constexpr double kPad = 5, kGap = 4, kButton = 32, kIcon = 34;
 constexpr double kMargin = CommandCapsule::shadow_margin;
-constexpr gf::Color rgb(int r, int g, int b, int a = 255) {
-    return gf::Color::rgba(static_cast<unsigned char>(r), static_cast<unsigned char>(g),
-                           static_cast<unsigned char>(b), static_cast<unsigned char>(a));
-}
 double ease(double t) {
     t = std::clamp(t, 0.0, 1.0);
     return t * t * (3 - 2 * t);
 }
-SpriteSpec title_spec(const std::string& title) {
-    return {title, Face::condensed, true, 19, rgb(255, 230, 172)};
-}
+// The title's size in points (Barlow Condensed Bold, as the hand-drawn lettering had it).
+constexpr double kTitleSize = 19;
 } // namespace
-CommandCapsule::CommandCapsule(gf::StableId id, TextSprites& sprites)
-    : Control(std::move(id)), sprites_(sprites) {
+CommandCapsule::CommandCapsule(gf::StableId id, const CapsuleTitleFamily& title_family)
+    : CommandCapsuleControl(std::move(id)), title_face_(title_family) {
     accessible_name = "Game commands";
     set_paint_plane(gf::PaintPlane::overlay);
 }
 void CommandCapsule::initialize_control_tree() {
+    // The document's children (the title label) first, then the face it is drawn in.
+    CommandCapsuleControl::initialize_control_tree();
+    title_label_ = std::dynamic_pointer_cast<gf::Label>(child("title"));
+    if (title_label_)
+        (*title_label_).font = title_face_.font(kTitleSize);
     back_ = gf::make_control<SuiteButton>(gf::StableId("capsule.back"), "", GlossTone::smoke);
     (*back_).set_glyph(Glyph::back);
     (*back_).set_radius(SuiteButton::round);
@@ -79,6 +79,7 @@ void CommandCapsule::set_game(std::string title, std::vector<GameCommand> comman
         static_cast<void>(remove_child((*b).runtime_id()));
     buttons_.clear();
     title_ = std::move(title);
+    write_title(title_);
     commands_ = std::move(commands);
     for (const GameCommand& c : commands_) {
         std::shared_ptr<SuiteButton> b =
@@ -109,7 +110,13 @@ void CommandCapsule::fold() {
 }
 void CommandCapsule::layout_slots() {
     slots_.clear();
-    title_width_ = std::ceil(sprites_.measure(title_spec(title_)).width) + 18;
+    // The title label's own width, measured by GUI.Forms' text engine in its face.
+    double title_text = 0;
+    if (title_label_) {
+        const gf::Size wanted = (*title_label_).measure({max_width_, kButton});
+        title_text = wanted.width;
+    }
+    title_width_ = std::ceil(title_text) + 18;
     double x = kPad, y = kPad, right = 0;
 
     struct PlaceSlot {
@@ -175,8 +182,12 @@ bool CommandCapsule::step(double dt, bool inside, bool reduced) {
 void CommandCapsule::arrange(gf::Rect bounds) {
     for (const std::shared_ptr<gf::Control>& child : children())
         (*child).set_paint_plane(gf::PaintPlane::overlay);
-    arrange_self(bounds);
+    // The composite lays out its parts (the pill) and its document children; the commands and
+    // the title are placed here.
+    CommandCapsuleControl::arrange(bounds);
     layout_slots();
+    if (title_label_)
+        set_child_layout(title_label_, {kMargin + kPad + kIcon + kGap + 9, kMargin + kPad, title_width_ - 18, kButton});
     // The pill, not the control bounds, decides what shows: a host may crop the shadow margin.
     const gf::Size pill = pill_size();
     for (const Slot& s : slots_) {
@@ -190,21 +201,5 @@ bool CommandCapsule::hit_test_local(gf::Point local) const {
     const gf::Size pill = pill_size();
     return local.x >= kMargin && local.y >= kMargin && local.x < kMargin + pill.width &&
            local.y < kMargin + pill.height;
-}
-void CommandCapsule::on_paint(gf::Painter& p, gf::Rect) {
-    const gf::Size pill = pill_size();
-    const gf::Rect b{kMargin, kMargin, pill.width, pill.height};
-    const double radius = std::min(21.0, b.height * .5);
-    // A close, light shadow: it seats the bar on the game without pooling under it.
-    p.draw_box_shadow(b, radius, {0, 2}, 6, 0, rgb(0, 0, 0, 90));
-    p.save();
-    p.clip_rounded_rect(b, radius);
-    fill_vertical(p, b, rgb(40, 48, 72, 228), rgb(16, 20, 34, 236));
-    p.restore();
-    p.stroke_rounded_rect(b, radius, rgb(255, 210, 122, 120), 1);
-    const SpriteSpec title = title_spec(title_);
-    const gf::Size ts = sprites_.measure(title);
-    sprites_.draw(p, title,
-                  {kMargin + kPad + kIcon + kGap + 9, kMargin + kPad + (kButton - ts.height) * .5});
 }
 } // namespace games

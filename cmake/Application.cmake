@@ -29,9 +29,19 @@ target_link_libraries(vendor_game_ui ${module_link_scope} ${GAMES_MODULE_LIBRARI
     game_audio_adapters game_text_frames game_wood GUIForms::Application)
 target_compile_definitions(vendor_game_ui INTERFACE _USE_MATH_DEFINES)
 add_library(game_ui ${GAMES_MODULE_SOURCES} "${GAMES_CATALOG_DIR}/game_registry.cpp" src/presentation.cpp
-    src/collection.cpp src/suite.cpp src/text_sprites.cpp src/capsule.cpp src/help_book.cpp src/help_content.cpp
+    src/collection.cpp src/suite.cpp src/capsule.cpp src/capsule_title_face.cpp src/help_book.cpp src/help_content.cpp
     src/settings_sheet.cpp src/suite_model.cpp src/paper_sheet.cpp)
 target_include_directories(game_ui PUBLIC src)
+# The capsule is a GUI.Forms composite, as PlaySuite's: its class derives from the one the form
+# compiler generates from controls/command-capsule.control. capsule.hpp includes the generated
+# header, so the directory is public for every target that includes it.
+gui_forms_add_control(game_ui controls/command-capsule.control CLASS CommandCapsuleControl NAMESPACE games)
+target_include_directories(game_ui PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/gui_forms_controls")
+# The capsule title's app-loaded face (src/capsule_title_face.cpp) uses GUI.Forms' app-font
+# API; public, so the tests see the same choice.
+if(GAMES_GUI_FORMS_APP_FONTS)
+    target_compile_definitions(game_ui PUBLIC GAMES_GUI_FORMS_APP_FONTS=1)
+endif()
 target_link_libraries(game_ui PUBLIC game_rules vendor_game_ui paper_core game_wood)
 if(NOT MSVC)
     target_compile_options(game_ui PRIVATE -Wall -Wextra)

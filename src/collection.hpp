@@ -8,7 +8,6 @@
 #include "presentation.hpp"
 #include "settings_sheet.hpp"
 #include "suite_settings.hpp"
-#include "text_sprites.hpp"
 namespace games {
 
 // The Pocket Library's shell, PlaySuite's with one volume on its shelf: the library's
@@ -46,8 +45,10 @@ class Collection final : public gf::Control, public HelpHost {
     // Space reserved above games that present their own live surfaces.
 
   private:
-    TextSprites sprites_;
     SuiteModel model_; // the masters every switch, check box and slider binds to
+    // The capsule title's application font family (Barlow Condensed): loaded before the
+    // capsule is made, released in ~Collection; the capsule copies its number.
+    CapsuleTitleFamily title_family_;
     std::shared_ptr<CommandCapsule> capsule_;
     static constexpr double rail_height = 50;
     double current_rail_height_ = rail_height;

@@ -11,6 +11,9 @@
 #include "test_paths.hpp"
 #include "gui_forms/application.hpp"
 #include "gui_forms/window.hpp"
+#if defined(GAMES_GUI_FORMS_APP_FONTS)
+#include "gui_forms/typography/app_fonts/app_fonts.hpp"
+#endif
 
 #include <algorithm>
 #include <filesystem>
@@ -71,6 +74,28 @@ int main() {
             const std::shared_ptr<games::Collection> shell =
                 gf::make_control<games::Collection>(gf::StableId("games.table"), false);
             require(has_class(*shell, "skin-ivory"), "the shell takes the ivory skin class");
+            // The capsule is a GUI.Forms composite (controls/command-capsule.control): its title
+            // is the document's label, in the capsule's face (the app-loaded Barlow Condensed with
+            // GAMES_GUI_FORMS_APP_FONTS, the bundled control face without it), and the library's
+            // Music switch is not shown.
+            std::shared_ptr<games::CommandCapsule> capsule;
+            for (const std::shared_ptr<gf::Control>& child : (*shell).children())
+                if ((*child).stable_id().value() == "collection.capsule")
+                    capsule = std::dynamic_pointer_cast<games::CommandCapsule>(child);
+            require(capsule != nullptr, "the shell has its capsule");
+            require((*capsule).type_name() == "command-capsule", "the capsule is the composite");
+            const std::shared_ptr<gf::Label> title = std::dynamic_pointer_cast<gf::Label>((*capsule).child("title"));
+            require(title != nullptr, "the capsule's title is the document's label");
+            const gf::FontSpec font = (*title).font.read();
+            require(font.weight == 700 && font.role == gf::FontRole::control, "the title's face is bold control text");
+#if defined(GAMES_GUI_FORMS_APP_FONTS)
+            require(font.family != gf::FontFamilyId{} && font.family == gf::app_font_family_named("Barlow Condensed"),
+                    "the title is in the app-loaded Barlow Condensed");
+            require(gf::app_font_family_state(font.family) == gf::AppFontState::live, "the family is live");
+            require(gf::admit_font(font, gf::FontContext::composite).family == font.family &&
+                        gf::admit_font(font, gf::FontContext::interface).family == gf::FontFamilyId{},
+                    "the composite's context keeps the family, the interface context drops it");
+#endif
             const std::shared_ptr<games::HelpGlyph> glyph =
                 gf::make_control<games::HelpGlyph>(gf::StableId("theme.help"), "?");
             (*glyph).set_variant(games::HelpGlyphVariant::help_link);

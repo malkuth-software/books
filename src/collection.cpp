@@ -4,21 +4,19 @@
 #include "gui_forms/controls/text_box.hpp"
 #include "gui_forms/window.hpp"
 namespace games {
-namespace {
-void repaint_tree(gf::Control& control) {
-    control.invalidate(gf::Dirty::paint);
-    for (const std::shared_ptr<gf::Control>& child : control.children())
-        repaint_tree(*child);
-}
-} // namespace
 Collection::Collection(gf::StableId id, bool dev) : Control(std::move(id)) {
     modules_.dev = dev;
     set_skin_class(*this, ButtonSkin::ivory);
 }
-Collection::~Collection() = default;
+// The capsule title's family is released here, in the shell's teardown before the
+// application shuts down (no static destructor holds it).
+Collection::~Collection() {
+    title_family_.release();
+}
 void Collection::initialize_control_tree() {
-    sprites_.request_update = std::bind_front(&Collection::wake, this);
-    capsule_ = gf::make_control<CommandCapsule>(gf::StableId("collection.capsule"), sprites_);
+    // The capsule title's family, loaded before the capsule that borrows it.
+    static_cast<void>(title_family_.load());
+    capsule_ = gf::make_control<CommandCapsule>(gf::StableId("collection.capsule"), title_family_);
     add_child(capsule_);
     (*capsule_).back = std::bind_front(&Collection::back, this);
     (*capsule_).command = std::bind_front(&Collection::run_command, this);
@@ -76,7 +74,6 @@ void Collection::on_detaching_from_window(gf::SurfaceRoot& window) noexcept {
     if (timer_)
         (*timer_).stop();
     timer_.reset();
-    sprites_.release(window);
 }
 bool Collection::hosted(Entry entry) const { return game_descriptor(entry).hosted; }
 bool Collection::railed(Entry entry) const { return game_descriptor(entry).rail; }
@@ -102,14 +99,6 @@ void Collection::tick() {
     audio_poll();
     if (gf::Window* window = attached_window())
         set_polygon_scale((*window).scale());
-    if (gf::Window* window = attached_window(); window && sprites_.update(*window)) {
-        // New lettering: every control that may paint it, however deep, or the ones not
-        // hovered keep the stand-in face.
-        repaint_tree(*capsule_);
-        (*capsule_).set_maximum_width(capsule_width_limit_);
-        (*capsule_).invalidate(gf::Dirty::paint);
-        invalidate(gf::Dirty::layout);
-    }
     const gf::Rect area{0, 0, client_rectangle().width - 48, railed(active_) ? current_rail_height_ : 60.0};
     gf::Rect r = (*capsule_).placement(area);
     // The placement includes the shadow margin, which doubles as a forgiving hover border.
@@ -127,7 +116,7 @@ void Collection::tick() {
     // and audio preparation need 60 Hz. Then stop: every wake of the window costs a
     // repaint wherever the capsule floats over a live game, so a settled game must
     // not be woken at all. The next pointer or key wakes it again.
-    const bool busy = (*capsule_).unsettled(inside) || sprites_.waiting() || audio_pending();
+    const bool busy = (*capsule_).unsettled(inside) || audio_pending();
     quiet_ = busy ? 0 : quiet_ + dt;
     if (timer_) {
         if (quiet_ > 3.0) {
