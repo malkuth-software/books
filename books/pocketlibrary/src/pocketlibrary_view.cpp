@@ -82,7 +82,7 @@ std::vector<std::string> about_paragraphs(const ShelfBook& book) {
 }  // namespace
 
 PocketLibraryView::PocketLibraryView(gf::StableId id, Options options)
-    : gf::Control(std::move(id)), options_(options) {
+    : games::RoutedInput<gf::Control>(std::move(id)), options_(options) {
     front_ = !options_.hosted;
     focusable = true;
     gf::SurfaceMaterial plain;
@@ -559,71 +559,55 @@ void PocketLibraryView::set_help(bool open) {
 
 // ---------------------------------------------------------------- input
 
-// The pointer, in GUI.Forms' raisers. Every action is on the press: a press
-// closes help or About; on the bookcase it opens the book under it, and in the
-// reader it turns the page on that side or opens a contents entry. The wheel
-// scrolls the bookcase or turns pages. Hover follows the moves and clears on
-// leave. There are no clicks or drags.
-void PocketLibraryView::on_mouse_wheel(gf::MouseEventArgs& event) {
+void PocketLibraryView::handle_pointer(gf::PointerEvent& event) {
+    const gf::Point local = point_from_window(event.position);
+    const int x = static_cast<int>(std::lround(local.x * scale_));
+    const int y = static_cast<int>(std::lround(local.y * scale_));
     if (help_ || about_) {
-        // nothing: help and About take only a press
-    } else if (!reader_.is_open()) {
-        scroll_shelf(-event.wheel_delta.y);
-        event.handled = true;
-    } else {
+        if (event.action == gf::PointerAction::down) {
+            set_help(false);
+            set_about(false);
+            event.handled = true;
+        }
+        return;
+    }
+    if (!reader_.is_open()) {
+        const int under = spine_at(shelf_, scroll_, local.x, local.y);
+        if (event.action == gf::PointerAction::wheel) {
+            scroll_shelf(-event.wheel_delta.y);
+            event.handled = true;
+            return;
+        }
+        if (event.action == gf::PointerAction::move || event.action == gf::PointerAction::leave) {
+            const int hover = event.action == gf::PointerAction::leave ? -1 : under;
+            if (hover != hover_) {
+                hover_ = hover;
+                cursor = hover >= 0 ? gf::CursorKind::hand : gf::CursorKind::arrow;
+                request_frame();
+            }
+            return;
+        }
+        if (event.action == gf::PointerAction::down && event.button == gf::PointerButton::primary) {
+            activate();
+            if (under >= 0)
+                open_book(under);
+            event.handled = true;
+        }
+        return;
+    }
+    if (event.action == gf::PointerAction::wheel) {
         const double delta = event.wheel_delta.y != 0 ? event.wheel_delta.y : -event.wheel_delta.x;
         if (delta != 0)
             turn(delta < 0);
         event.handled = true;
+        return;
     }
-    if (is_alive())
-        gf::Control::on_mouse_wheel(event);
-}
-
-void PocketLibraryView::show_hover(int hover) {
-    if (hover != hover_) {
-        hover_ = hover;
-        cursor = hover >= 0 ? gf::CursorKind::hand : gf::CursorKind::arrow;
-        request_frame();
-    }
-}
-
-void PocketLibraryView::on_mouse_move(gf::MouseEventArgs& event) {
-    const gf::Point local = event.location;
-    if (help_ || about_) {
-        // nothing
-    } else if (!reader_.is_open()) {
-        show_hover(spine_at(shelf_, scroll_, local.x, local.y));
-    } else {
-        const int x = static_cast<int>(std::lround(local.x * scale_));
-        const int y = static_cast<int>(std::lround(local.y * scale_));
+    if (event.action == gf::PointerAction::move) {
         const bool over = reader_.contents_shown() ? reader_.contents_entry_at(x, y) >= 0 : reader_.side_at(x, y) != 0;
         cursor = over ? gf::CursorKind::hand : gf::CursorKind::arrow;
+        return;
     }
-    gf::Control::on_mouse_move(event);
-}
-
-void PocketLibraryView::on_mouse_leave() {
-    if (!help_ && !about_ && !reader_.is_open())
-        show_hover(-1);
-    gf::Control::on_mouse_leave();
-}
-
-void PocketLibraryView::on_mouse_down(gf::MouseEventArgs& event) {
-    const gf::Point local = event.location;
-    if (help_ || about_) {
-        set_help(false);
-        set_about(false);
-        event.handled = true;
-    } else if (event.button == gf::PointerButton::primary && !reader_.is_open()) {
-        const int under = spine_at(shelf_, scroll_, local.x, local.y);
-        activate();
-        if (under >= 0)
-            open_book(under);
-        event.handled = true;
-    } else if (event.button == gf::PointerButton::primary) {
-        const int x = static_cast<int>(std::lround(local.x * scale_));
-        const int y = static_cast<int>(std::lround(local.y * scale_));
+    if (event.action == gf::PointerAction::down && event.button == gf::PointerButton::primary) {
         activate();
         if (reader_.contents_shown()) {
             const int section = reader_.contents_entry_at(x, y);
@@ -642,27 +626,10 @@ void PocketLibraryView::on_mouse_down(gf::MouseEventArgs& event) {
         }
         event.handled = true;
     }
-    if (is_alive())
-        gf::Control::on_mouse_down(event);
 }
 
-// The keys: the view's own handling runs after the base raised the event, on
-// a key its subscribers left unhandled; keys bubbling from a focused child
-// take the same handling.
-void PocketLibraryView::on_key_down(gf::KeyEventArgs& event) {
-    gf::Control::on_key_down(event);
-    key_down(event);
-}
-
-void PocketLibraryView::on_key_bubble(gf::KeyEvent& event) {
-    if (event.action != gf::KeyAction::down) return;
-    gf::KeyEventArgs arguments = games::key_arguments_of(event);
-    key_down(arguments);
-    event.handled = arguments.handled;
-}
-
-void PocketLibraryView::key_down(gf::KeyEventArgs& event) {
-    if (event.handled)
+void PocketLibraryView::handle_key(gf::KeyEvent& event) {
+    if (event.handled || event.action != gf::KeyAction::down)
         return;
     using Key = gf::PhysicalKey;
     const std::uint32_t key = event.physical_key;
@@ -732,7 +699,6 @@ void PocketLibraryView::key_down(gf::KeyEventArgs& event) {
     } else
         event.handled = false;
 }
-
 
 // ---------------------------------------------------------------- the capsule
 

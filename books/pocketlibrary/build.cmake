@@ -47,11 +47,4 @@ if(GAMES_BUILD_APPLICATION)
   add_test(NAME pocketlibrary_view_contract COMMAND pocketlibrary_contract_tests)
   set_tests_properties(pocketlibrary_view_contract PROPERTIES TIMEOUT 90
     ENVIRONMENT "GAMES_ASSET_DIR=${GAMES_RUNTIME_ASSET_DIR}")
-  # The view's input on GUI.Forms' raisers.
-  add_executable(pocketlibrary_input_tests "${GAME_MODULE_DIR}/tests/view_input_tests.cpp")
-  target_include_directories(pocketlibrary_input_tests PRIVATE "${CMAKE_SOURCE_DIR}/new-games/kit")
-  target_link_libraries(pocketlibrary_input_tests PRIVATE vendor_game_ui)
-  add_test(NAME pocketlibrary_view_input COMMAND pocketlibrary_input_tests)
-  set_tests_properties(pocketlibrary_view_input PROPERTIES TIMEOUT 90
-    ENVIRONMENT "GAMES_ASSET_DIR=${GAMES_RUNTIME_ASSET_DIR}")
 endif()

@@ -92,3 +92,7 @@ target_link_libraries(playsuite_theme_tests PRIVATE game_ui)
 gui_forms_add_theme(playsuite_theme_tests themes/playsuite FUNCTION playsuite_theme NAMESPACE games)
 add_test(NAME playsuite_theme COMMAND playsuite_theme_tests)
 set_tests_properties(playsuite_theme PROPERTIES ENVIRONMENT "GAMES_ASSET_DIR=${GAMES_RUNTIME_ASSET_DIR}")
+# The view's routed handlers over GUI.Forms' interaction raisers (src/routed_input.hpp).
+add_executable(routed_input_tests tests/routed_input_tests.cpp)
+target_link_libraries(routed_input_tests PRIVATE game_ui)
+add_test(NAME routed_input COMMAND routed_input_tests)
