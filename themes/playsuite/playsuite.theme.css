@@ -191,7 +191,7 @@
   --card-ink: #1c1a16;
   --card-soft-ink: #6e5b25;
   --card-foil: #d6a028;
-  --card-remark-ink: #5a5242;
+  --card-remark-ink: #f3ecda;
   --card-shadow: #0000005a;
   --card-focus: #d6a028c8;
 }
@@ -484,15 +484,16 @@ label.help-text { color: var(--help-ink); }
 label.settings-text { color: var(--settings-ink); }
 label.settings-heading { color: var(--settings-heading); }
 
-/* The business card (GUI.Forms' business-card: one card for every program). PlaySuite's card was bone stock with raised black ink, the name turning to gold foil under the pointer; GUI.Forms' card is flat (its first version), so the sheet keeps the stock, the inks and the foil and leaves the relief, the turn and the finish (docs/TOOLKIT_REQUESTS.md). */
+/* The business card (GUI.Forms' business-card: one card for every program). PlaySuite's card is bone paper stock with black ink, the name turning to gold foil under the pointer. GUI.Forms' card (business-card parity) turns in the hand and paints both faces through these rules first, so the turned card keeps this stock; the stock is a paper-fibre material, and the remarks rise around the card over the dimmed window, in a pale ink. */
 business-card::part(shadow) { background: var(--card-shadow); border: none; box-shadow: none; }
-business-card::part(stock) { background: var(--card-stock); border: 1px solid var(--card-stock-edge); box-shadow: none; }
+business-card::part(stock) { background: pattern(paper-fibre, #e9e3d2, #d8cfb6, 48px); border: 1px solid var(--card-stock-edge); box-shadow: inset 0 1px 0 #f7f3e8; }
 business-card::part(vendor_name) { color: var(--card-ink); }
 business-card:hover::part(vendor_name) { color: var(--card-foil); }
 business-card::part(rule) { background: var(--card-soft-ink); border: none; }
 business-card::part(product) { color: var(--card-ink); }
 business-card::part(website) { color: var(--card-soft-ink); }
 business-card:hover::part(website) { color: var(--card-foil); }
+business-card::part(copyright) { color: var(--card-soft-ink); }
 business-card::part(remark) { color: var(--card-remark-ink); }
 business-card::part(close_mark) { color: var(--card-soft-ink); }
 business-card:hover::part(close_mark) { color: var(--card-foil); }
