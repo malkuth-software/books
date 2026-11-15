@@ -385,19 +385,25 @@ jobs:
           key: ${{ steps.objects.outputs.cache-primary-key }}
       - name: Test complete application
         run: ctest --test-dir .build/native/app --output-on-failure --timeout 180 --parallel 4 --output-junit results.xml -LE design
+      # The package scripts read GUI.Forms' notices and fonts from an installed SDK prefix
+      # (share/licenses/GUIForms, share/GUIForms/fonts): install the toolkit the build used.
+      - name: Install GUI.Forms into an SDK prefix for packaging
+        run: |
+          cmake --install .build/native/app/toolkit --prefix "$RUNNER_TEMP/gui-forms-sdk"
+          echo "GUI_FORMS_SDK=$RUNNER_TEMP/gui-forms-sdk" >> "$GITHUB_ENV"
       - name: Package Windows application and installer
         if: runner.os == 'Windows'
-        run: python tools/package_windows.py --build .build/native/app --toolkit gui_forms --runtime-dir /clang64/bin --installer
+        run: python tools/package_windows.py --build .build/native/app --toolkit "$GUI_FORMS_SDK" --source-revision "$GITHUB_SHA" --runtime-dir /clang64/bin --installer
       - name: Package macOS application and installer
         if: runner.os == 'macOS'
-        run: python3 tools/package_macos.py --build .build/native/app --toolkit gui_forms --runtime "$GUI_FORMS_LLVM_RUNTIME"
+        run: python3 tools/package_macos.py --build .build/native/app --toolkit "$GUI_FORMS_SDK" --source-revision "$GITHUB_SHA" --runtime "$GUI_FORMS_LLVM_RUNTIME"
       - name: Package Linux application and installer
         if: runner.os == 'Linux'
         # One module: the package refuses a program that needs a library beyond the system's
         # (tools/test_package_linux.py tests the readelf/ldd reading first).
         run: |
           python3 -B tools/test_package_linux.py
-          python3 tools/package_linux.py --build .build/native/app --toolkit gui_forms
+          python3 tools/package_linux.py --build .build/native/app --toolkit "$GUI_FORMS_SDK" --source-revision "$GITHUB_SHA"
       - name: Launch packaged Windows application
         if: runner.os == 'Windows'
         run: |

@@ -61,7 +61,11 @@ def require_one_module(binary):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--build", type=Path, required=True)
-    parser.add_argument("--toolkit", type=Path, required=True)
+    # An installed GUI.Forms SDK prefix (cmake --install or tools/build_sdk.py): its notices in
+    # share/licenses/GUIForms and its fonts in share/GUIForms/fonts.
+    parser.add_argument("--toolkit", type=Path, required=True, help="installed GUI.Forms SDK prefix")
+    # The packaged source commit; this checkout's HEAD through git when omitted.
+    parser.add_argument("--source-revision", help="source commit recorded in package-manifest.json")
     parser.add_argument("--output", type=Path, default=Path("dist"))
     args = parser.parse_args()
     output = args.output.resolve()
@@ -73,13 +77,13 @@ def main():
     subprocess.run(["strip", "--strip-unneeded", str(bundle / "pocketlibrary")], check=True)
     require_one_module(bundle / "pocketlibrary")
     copy_resources(args.build, args.toolkit, bundle)
-    # The statically linked LLVM runtime's licences, as GUI.Forms' own Linux packages carry them.
-    llvm_notices = args.toolkit / "packaging/licenses/llvm"
-    for name, notice in (("LLVM-libcxx.txt", "libcxx-LICENSE.TXT"), ("LLVM-libcxxabi.txt", "libcxxabi-LICENSE.TXT"),
-                         ("LLVM-libunwind.txt", "libunwind-LICENSE.TXT")):
-        shutil.copy2(llvm_notices / notice, bundle / "licenses" / name)
+    # The statically linked LLVM runtime's licences, as GUI.Forms' own Linux SDK installs them
+    # (copied with its other notices into licenses/GUIForms).
+    for notice in ("libcxx-LICENSE.txt", "libcxxabi-LICENSE.txt", "libunwind-LICENSE.txt"):
+        if not (bundle / "licenses/GUIForms" / notice).is_file():
+            raise RuntimeError("The GUI.Forms SDK carries no " + notice + " for the static LLVM runtime")
     arch = "arm64" if platform.machine() == "aarch64" else "amd64"
-    write_manifest(bundle, "Linux", arch)
+    write_manifest(bundle, "Linux", arch, args.source_revision)
     stem = "pocketlibrary-" + project_version() + "-linux-" + arch
     with tarfile.open(output / (stem + ".tar.gz"), "w:gz") as archive:
         archive.add(bundle, arcname="Pocket Library")

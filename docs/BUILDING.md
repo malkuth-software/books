@@ -58,10 +58,12 @@ On Linux, also install GN, Ninja, X11/Xcursor and ATK development packages. macO
 Packaging scripts stage into a new output directory and refuse to overwrite an existing application folder:
 
 ```sh
-python tools/package_windows.py --build build/app --toolkit gui_forms --runtime-dir <mingw64-bin> --installer
-python3 tools/package_macos.py --build build/app --toolkit gui_forms --runtime <macos-14-llvm-runtime>
-python3 tools/package_linux.py --build build/app --toolkit gui_forms
+python tools/package_windows.py --build build/app --toolkit <gui-forms-sdk-prefix> --runtime-dir <mingw64-bin> --installer
+python3 tools/package_macos.py --build build/app --toolkit <gui-forms-sdk-prefix> --runtime <macos-14-llvm-runtime>
+python3 tools/package_linux.py --build build/app --toolkit <gui-forms-sdk-prefix>
 ```
+
+`--toolkit` is an installed GUI.Forms SDK prefix (the lockstep prefix, or `cmake --install <build>/toolkit --prefix <dir>` after a source build): the scripts read GUI.Forms' notices from `share/licenses/GUIForms` and its fonts from `share/GUIForms/fonts`. `--source-revision <commit>` records the packaged commit in package-manifest.json; without it the scripts ask git for this checkout's HEAD.
 
 Windows installer creation requires NSIS. Linux packaging requires patchelf and Debian packaging tools; its DEB records the actual shared-library dependencies. The Windows and macOS scripts copy and validate the native dependency closure. All packages include the library's parts, toolkit fonts, the library's fonts, dependency notices and a resource manifest.
 

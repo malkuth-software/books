@@ -9,6 +9,9 @@ import shutil
 import subprocess
 from package_common import ROOT, copy_resources, project_version, write_manifest
 
+# The harness at the commit harness.lock pins (CI checks it out at template_harness/).
+HARNESS = ROOT / "template_harness" / "harness"
+
 
 def run(arguments):
     return subprocess.check_output(arguments, text=True).strip()
@@ -25,7 +28,11 @@ def dependencies(path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--build", type=Path, required=True)
-    parser.add_argument("--toolkit", type=Path, required=True)
+    # An installed GUI.Forms SDK prefix (cmake --install or tools/build_sdk.py): its notices in
+    # share/licenses/GUIForms and its fonts in share/GUIForms/fonts.
+    parser.add_argument("--toolkit", type=Path, required=True, help="installed GUI.Forms SDK prefix")
+    # The packaged source commit; this checkout's HEAD through git when omitted.
+    parser.add_argument("--source-revision", help="source commit recorded in package-manifest.json")
     # GUI.Forms' LLVM 22 runtime built for macOS 14 (GUI_FORMS_LLVM_RUNTIME), whose
     # libc++, libc++abi and libunwind ship inside the app.
     parser.add_argument("--runtime", type=Path, required=True)
@@ -124,8 +131,8 @@ def main():
         run(["strip", "-S", "-x", str(target)])
         run(["codesign", "--force", "--sign", "-", str(target)])
     # Every image is arm64, at most macOS 14.0, with no system or absolute libc++.
-    run(["python3", str(args.toolkit / "tools/audit_macos_minimum.py"), str(app)])
-    write_manifest(resources, "macOS", "arm64")
+    run(["python3", str(HARNESS / "audit_macos_minimum.py"), str(app)])
+    write_manifest(resources, "macOS", "arm64", args.source_revision)
     run(["codesign", "--force", "--deep", "--sign", "-", str(app)])
     run(["codesign", "--verify", "--deep", "--strict", str(app)])
     stem = "pocketlibrary-" + project_version() + "-macos-arm64"
