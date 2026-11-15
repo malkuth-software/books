@@ -72,14 +72,15 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
      adopted yet (coordinator's choice).
    - Business card and diagnostic overlay: Pocket Library had neither, so there is nothing to replace. Showing
      GUI.Forms' card (as PlaySuite now does) would be a product choice; the theme already carries its rules.
-5. **The capsule** (src/capsule.cpp, PlaySuite's shell copy) gives the same result as PlaySuite's check: built
-   from GUI.Forms controls (`gf::Button` faces through the theme, switches bound to the model), with the pill
-   and the glyphs still hand-painted (expressible as theme parts and button images: product work) and the
-   title in Barlow Condensed through the product's own text sprites. Interface text uses bundled faces only,
-   so the title was a GUI.Forms gap. The owner settled it (2026-11-15): composites may load fonts, and
-   PlaySuite's capsule became a GUI.Forms composite (PlaySuite 44d6f6f, controls/command-capsule.control and
-   src/capsule_title_face.*). Pocket Library's capsule follows the same way once PlaySuite's is built and
-   settled; until then it is unchanged.
+5. **The capsule** is a GUI.Forms composite, as PlaySuite's (prep 1cf66ed), since 5214319:
+   controls/command-capsule.control (the pill a themed part, the title a stock label) is generated into
+   games::CommandCapsuleControl by `gui_forms_add_control`, and games::CommandCapsule derives from it, adding
+   the commands, the master switches (Music hidden and unplaced: the library plays no music) and the opening
+   layout. The title is Barlow Condensed loaded through GUI.Forms' app-font API (src/capsule_title_face.*,
+   option GAMES_GUI_FORMS_APP_FONTS, ON): Collection owns the family, loads it before the capsule and
+   releases it in ~Collection; the capsule copies its id, and no static holds it (the owner settled the
+   gap on 2026-11-15: composites may load fonts). src/text_sprites.*, used only by the capsule, is removed.
+   The source build forces GUI_FORMS_BUILD_FORM_COMPILER for the control.
    - themes/playsuite carries PlaySuite's card-parity rules (paper-fibre stock, copyright and remark inks),
      byte-identical; Pocket Library still shows no business card.
 
@@ -91,8 +92,8 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
   the GUI.Forms release that carries cp32/cp33 (0.6 numbering, with its cache assets), and to the
   template_harness main commit GUI.Forms pins. AGENTS.md's release paragraph and BUILDING.md's list of what the
   pinned revision added should be rewritten then.
-- **GUI.Forms gaps:** W402 on a light-only package (PlaySuite's docs/TOOLKIT_REQUESTS.md); the capsule
-  title's display face. Closed by cp33: the public `key_event_arguments` and the crossing position.
+- **GUI.Forms gaps:** W402 on a light-only package (PlaySuite's docs/TOOLKIT_REQUESTS.md). Closed: the
+  capsule title's display face (app-font API, composites). Closed by cp33: the public `key_event_arguments` and the crossing position.
 - **Fonts:**
   - font family: `FontSpec` gains `family` / `stack`. The 18 positional `FontSpec{role, ...}` initializers
     name no family. The book pages are set by the page compositor through the FreeType and HarfBuzz
@@ -159,6 +160,12 @@ Tests that should cover it:
   (PlaySuite only). Check the look by eye against PlaySuite.
 - The Linux package's one-module check and the static libc++ configure check pass only once the GUI.Forms
   pin carries one-module (folded as 66f82629b) and the static libc++ link.
+- **Capsule composite:** targets that include capsule.hpp need the generated header first (game_ui exports
+  the directory; ordering relies on CMake's dependency edges); the .control vocabulary is unchecked until
+  the form compiler reads it; the title label may measure 0 before it is attached (the width is re-measured
+  in arrange); the app-font API allows one load per name per process, so a second Collection in one process
+  (the theme test makes one) finds the name taken unless the first released it. An installed GUI.Forms must
+  export GUIForms::form_compiler.
 - The libc++ check runs before `find_package`; a Linux tree configured without llvm22.cmake now stops at
   configure.
 - The 51 accessors that delete their rvalue overload can refuse a call on a temporary; only a compile shows
