@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -86,7 +87,10 @@ int main() {
             require((*capsule).type_name() == "command-capsule", "the capsule is the composite");
             const std::shared_ptr<gf::Label> title = std::dynamic_pointer_cast<gf::Label>((*capsule).child("title"));
             require(title != nullptr, "the capsule's title is the document's label");
-            const gf::FontSpec font = (*title).font.read();
+            // The label's own font (unset would mean inherited): the capsule sets it.
+            const std::optional<gf::FontSpec> own_font = (*title).font.read();
+            require(own_font.has_value(), "the capsule sets the title's font");
+            const gf::FontSpec font = *own_font;
             require(font.weight == 700 && font.role == gf::FontRole::control, "the title's face is bold control text");
 #if defined(GAMES_GUI_FORMS_APP_FONTS)
             require(font.family != gf::FontFamilyId{} && font.family == gf::app_font_family_named("Barlow Condensed"),
