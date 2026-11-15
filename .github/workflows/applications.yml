@@ -271,7 +271,8 @@ jobs:
           echo "GUI_FORMS_LLVM_RUNTIME=$PWD/.build/toolchain/llvm-22.1.8-macos14" >> "$GITHUB_ENV"
       # Ubuntu's Clang 18 rejects current GUI.Forms; use the LLVM 22 series, as
       # GUI.Forms' own CI does, which also lets its compiler cache match. Since cp33
-      # GUI.Forms links LLVM's libc++ 22 and libc++abi on Linux, and so does the app.
+      # GUI.Forms links LLVM's libc++ 22, libc++abi and libunwind statically on Linux, and so
+      # does the app (the archives come from these packages).
       - name: Install Linux compiler and desktop libraries
         if: runner.os == 'Linux'
         run: |
@@ -279,7 +280,7 @@ jobs:
           sudo install -m 0644 "$RUNNER_TEMP/llvm-key.asc" /usr/share/keyrings/apt-llvm.asc
           echo 'deb [signed-by=/usr/share/keyrings/apt-llvm.asc] https://apt.llvm.org/noble/ llvm-toolchain-noble-22 main' | sudo tee /etc/apt/sources.list.d/llvm-22.list
           sudo apt-get update
-          sudo apt-get install -y clang-22 llvm-22 libc++-22-dev libc++abi-22-dev ninja-build generate-ninja ccache \
+          sudo apt-get install -y clang-22 llvm-22 libc++-22-dev libc++abi-22-dev libunwind-22-dev ninja-build generate-ninja ccache \
             libx11-dev libxcursor-dev libatk1.0-dev libatk-bridge2.0-dev \
             libasound2t64 patchelf xvfb dpkg-dev
           echo /usr/lib/llvm-22/bin >> "$GITHUB_PATH"
@@ -392,7 +393,11 @@ jobs:
         run: python3 tools/package_macos.py --build .build/native/app --toolkit gui_forms --runtime "$GUI_FORMS_LLVM_RUNTIME"
       - name: Package Linux application and installer
         if: runner.os == 'Linux'
-        run: python3 tools/package_linux.py --build .build/native/app --toolkit gui_forms
+        # One module: the package refuses a program that needs a library beyond the system's
+        # (tools/test_package_linux.py tests the readelf/ldd reading first).
+        run: |
+          python3 -B tools/test_package_linux.py
+          python3 tools/package_linux.py --build .build/native/app --toolkit gui_forms
       - name: Launch packaged Windows application
         if: runner.os == 'Windows'
         run: |

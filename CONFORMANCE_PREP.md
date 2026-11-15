@@ -55,15 +55,21 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
 
 4. **cp33 (claude/batch-cp33):**
    - Linux: main calls `std::setlocale(LC_CTYPE, "")`; CMakeLists.txt checks for libc++ 22 on Linux
-     (`GAMES_LINUX_LIBCXX_22`) when the application builds; the native job installs libc++-22-dev and
-     libc++abi-22-dev with clang-22; tools/package_linux.py bundles libc++.so.1 and libc++abi.so.1 (and
-     libunwind.so.1 where ldd resolves it) with the LLVM licences.
+     (`GAMES_LINUX_LIBCXX_22`) when the application builds.
+   - One module (owner rule: a shipped program has no native library dependency and is one module):
+     libc++, libc++abi and libunwind link statically through gui_forms/cmake/llvm22.cmake (GUI.Forms
+     claude/cp33-libcxx-static 39d2ea6b0); CMakeLists.txt refuses a Linux tree whose link line lacks the
+     static archives; the native job installs libc++-22-dev, libc++abi-22-dev and libunwind-22-dev with
+     clang-22. GUI.Forms links into the executable once its claude/one-module lands (still SHARED at
+     cp33). tools/package_linux.py bundles no shared library and refuses a program whose readelf -d or ldd
+     names the LLVM runtime or a libgui_forms library, or resolves anything outside the system's library
+     folders (tools/test_package_linux.py, run before packaging). The LLVM licences still ship.
    - themes/playsuite and tools/make_theme.py stay byte-identical to PlaySuite's, now with its
      `business-card` rules.
    - Not needed: no form file; no relative pointer or release regions (nothing holds the pointer); WheelPhase,
      timestamps and FontSpec's family and stack are appended fields; no class derives from a class made
      final; the window band and WindowCapsule belong to the surface window manager. The std rules are not
-     adopted (owner choice).
+     adopted yet (coordinator's choice).
    - Business card and diagnostic overlay: Pocket Library had neither, so there is nothing to replace. Showing
      GUI.Forms' card (as PlaySuite now does) would be a product choice; the theme already carries its rules.
 5. **The capsule** (src/capsule.cpp, PlaySuite's shell copy) gives the same result as PlaySuite's check: built
@@ -146,6 +152,8 @@ Tests that should cover it:
   set_theme_override are gone; docs/TOOLKIT_REQUESTS.md lists the theme gaps). Not carried: the .form window
   and Collection::set_development (PlaySuite's form-made shell), the card-back choice and the business card
   (PlaySuite only). Check the look by eye against PlaySuite.
+- The Linux package fails its one-module check until the GUI.Forms pin carries claude/one-module, and the
+  configure fails until it carries the static libc++ link: intended.
 - The libc++ check runs before `find_package`; a Linux tree configured without llvm22.cmake now stops at
   configure.
 - The 51 accessors that delete their rvalue overload can refuse a call on a temporary; only a compile shows

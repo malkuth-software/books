@@ -29,6 +29,10 @@ endif()
 # and an application that links it must use the same C++ library: gui_forms/cmake/llvm22.cmake
 # passes -stdlib=libc++. A tree that would compile against libstdc++ is refused here, as
 # GUI.Forms' own configure refuses it, rather than at the first link or library difference.
+# A shipped program also has no native library dependency (owner, 2026-11-15): the toolchain
+# links libc++, libc++abi and libunwind statically (-nostdlib++ and the archives last on every
+# C++ link line, GUI.Forms 39d2ea6b0), and a tree whose link line would take them shared is
+# refused too. tools/package_linux.py checks the result with readelf and ldd.
 if(GAMES_BUILD_APPLICATION AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   include(CheckCXXSourceCompiles)
   check_cxx_source_compiles([=[
@@ -38,6 +42,12 @@ if(GAMES_BUILD_APPLICATION AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
 #endif
 int main() { return 0; }
 ]=] GAMES_LINUX_LIBCXX_22)
+  string(FIND "${CMAKE_CXX_STANDARD_LIBRARIES}" "-Wl,-Bstatic -lc++ -lc++abi -lunwind" GAMES_STATIC_CXX_RUNTIME)
+  if(GAMES_STATIC_CXX_RUNTIME EQUAL -1)
+    message(FATAL_ERROR "Pocket Library on Linux links libc++, libc++abi and libunwind statically: configure "
+                        "with gui_forms/cmake/llvm22.cmake from a GUI.Forms that carries the static link "
+                        "(claude/cp33-libcxx-static) and install libunwind-22-dev")
+  endif()
   if(NOT GAMES_LINUX_LIBCXX_22)
     # Not cached as a failure: the next configure checks again.
     unset(GAMES_LINUX_LIBCXX_22 CACHE)

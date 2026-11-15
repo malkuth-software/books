@@ -2,13 +2,60 @@
 import argparse
 from pathlib import Path
 import platform
+import re
 import shutil
 import subprocess
 import tarfile
 from package_common import ROOT, copy_resources, project_version, write_manifest
 
-# The LLVM runtime libraries a Linux build links (libunwind on musl only).
-LLVM_RUNTIME = ("libc++.so.1", "libc++abi.so.1", "libunwind.so.1")
+# A shipped program is one module with no native library dependency beyond the system's own
+# (owner, 2026-11-15): libc++, libc++abi and LLVM's libunwind are linked statically
+# (gui_forms/cmake/llvm22.cmake, GUI.Forms claude/cp33-libcxx-static 39d2ea6b0), and GUI.Forms
+# is linked into the executable (GUI.Forms claude/one-module). The package refuses a binary
+# that names any of these, or any library ldd resolves outside the system's library folders.
+REFUSED_LIBRARY = re.compile(r"(?<![\w+.-])(lib(?:c\+\+abi|c\+\+|unwind)\.so\.\d+|libgui_forms_\S*?\.so(?:\.\d+)*)(?![\w+.-])")
+# Where the system's own libraries live (glibc and musl, both layouts); /usr/lib/llvm-* is not one.
+SYSTEM_LIBRARY_FOLDERS = ("/lib/", "/lib64/", "/usr/lib/", "/usr/lib64/")
+# One ldd line: "\tname => /path (0x...)", "\tname => not found", "\tname (0x...)" (vdso) or
+# "\t/lib64/ld-linux... (0x...)" (the loader).
+LDD_LINE = re.compile(r"^\s*(\S+)(?:\s+=>\s+(not found|\S+))?(?:\s+\(0x[0-9a-fA-F]+\))?\s*$")
+
+
+def foreign_libraries(readelf_output, ldd_output):
+    """The libraries a binary needs that are not the system's, in order, each once.
+
+    readelf -d's NEEDED entries and ldd's lines are both read: a refused name (the LLVM C++
+    runtime or a GUI.Forms library) fails wherever it appears; an ldd line that resolves
+    nowhere, or outside SYSTEM_LIBRARY_FOLDERS, fails too. linux-vdso and the dynamic loader
+    are the system's.
+    """
+    found = []
+    for match in REFUSED_LIBRARY.finditer(readelf_output + "\n" + ldd_output):
+        if match.group(1) not in found:
+            found.append(match.group(1))
+    for line in ldd_output.splitlines():
+        match = LDD_LINE.match(line)
+        if match is None or not line.strip():
+            continue
+        name = match.group(1)
+        target = match.group(2)
+        if name.startswith("linux-vdso") or name.startswith("linux-gate"):
+            continue
+        where = target if target is not None else name
+        system = where.startswith(SYSTEM_LIBRARY_FOLDERS) and not where.startswith("/usr/lib/llvm-")
+        if (where == "not found" or not system) and name not in found:
+            found.append(name)
+    return found
+
+
+def require_one_module(binary):
+    """Fails unless `binary` needs only the system's libraries (see foreign_libraries)."""
+    readelf_output = subprocess.check_output(["readelf", "-d", str(binary)], text=True)
+    ldd_output = subprocess.check_output(["ldd", str(binary)], text=True)
+    found = foreign_libraries(readelf_output, ldd_output)
+    if found:
+        raise RuntimeError(str(binary) + " needs libraries that are not the system's: " + ", ".join(found)
+                           + "\n" + ldd_output)
 
 
 def main():
@@ -21,42 +68,15 @@ def main():
     bundle = output / "Pocket Library"
     bundle.mkdir(parents=True, exist_ok=False)
     shutil.copy2(args.build / "pocketlibrary", bundle / "pocketlibrary")
-    # GUI.Forms' shared libraries (Application, Threading) the bundle needs, followed
-    # through each one's own imports.
-    pending = [bundle / "pocketlibrary"]
-    while pending:
-        binary = pending.pop()
-        imports = subprocess.check_output(["patchelf", "--print-needed", str(binary)], text=True).splitlines()
-        for name in imports:
-            if name.startswith("libgui_forms_") and not (bundle / name).exists():
-                shutil.copy2(args.build / "toolkit" / name, bundle / name)
-                pending.append(bundle / name)
-    if not list(bundle.glob("libgui_forms_application.so*")):
-        raise RuntimeError("Expected the GUI.Forms application library import")
-    # LLVM's libc++ 22 and libc++abi (and libunwind on musl): GUI.Forms builds against them on
-    # Linux (cp33) and Ubuntu's archive has no libc++ 22, so the bundle carries them beside the
-    # program, as macOS bundles its runtime dylibs, from where ldd resolves them.
-    resolved = subprocess.check_output(["ldd", str(bundle / "pocketlibrary")], text=True)
-    runtime = {}
-    for line in resolved.splitlines():
-        parts = line.split()
-        if len(parts) >= 3 and parts[1] == "=>" and parts[0] in LLVM_RUNTIME:
-            runtime[parts[0]] = Path(parts[2])
-    for name in ("libc++.so.1", "libc++abi.so.1"):
-        if name not in runtime:
-            raise RuntimeError("Expected the program to link " + name + " (libc++ 22)")
-    for name, source in runtime.items():
-        shutil.copy2(source, bundle / name)
-    for binary in [bundle / "pocketlibrary"] + list(bundle.glob("*.so*")):
-        subprocess.run(["patchelf", "--set-rpath", "$ORIGIN", str(binary)], check=True)
-        subprocess.run(["strip", "--strip-unneeded", str(binary)], check=True)
-        dependencies = subprocess.check_output(["ldd", str(binary)], text=True)
-        if "not found" in dependencies:
-            raise RuntimeError(dependencies)
+    # One module: GUI.Forms and the LLVM C++ runtime are linked into the program, so the bundle
+    # holds no shared library and the program needs only the system's.
+    subprocess.run(["strip", "--strip-unneeded", str(bundle / "pocketlibrary")], check=True)
+    require_one_module(bundle / "pocketlibrary")
     copy_resources(args.build, args.toolkit, bundle)
-    # The bundled LLVM runtime's licences, as GUI.Forms' own Linux packages carry them.
+    # The statically linked LLVM runtime's licences, as GUI.Forms' own Linux packages carry them.
     llvm_notices = args.toolkit / "packaging/licenses/llvm"
-    for name, notice in (("LLVM-libcxx.txt", "libcxx-LICENSE.TXT"), ("LLVM-libcxxabi.txt", "libcxxabi-LICENSE.TXT")):
+    for name, notice in (("LLVM-libcxx.txt", "libcxx-LICENSE.TXT"), ("LLVM-libcxxabi.txt", "libcxxabi-LICENSE.TXT"),
+                         ("LLVM-libunwind.txt", "libunwind-LICENSE.TXT")):
         shutil.copy2(llvm_notices / notice, bundle / "licenses" / name)
     arch = "arm64" if platform.machine() == "aarch64" else "amd64"
     write_manifest(bundle, "Linux", arch)
