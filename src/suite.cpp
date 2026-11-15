@@ -129,10 +129,38 @@ gf::Rect outset(gf::Rect r, double amount) {
     const gf::Rect result{r.x - amount, r.y - amount, r.width + 2 * amount, r.height + 2 * amount};
     return result;
 }
+// The theme names a part by its key's part name (`::part(face)`); a part painted with
+// a role only matches `::role(face)` rules. The names are the stock parts' own.
+std::optional<gf::PartKey> skin_part_key(gf::PartRole role) {
+    switch (role) {
+    case gf::PartRole::face:
+        return gf::PartKey{"face", {}, {}};
+    case gf::PartRole::focus:
+        return gf::PartKey{"focus", {}, {}};
+    case gf::PartRole::indicator:
+        return gf::PartKey{"indicator", {}, {}};
+    case gf::PartRole::label:
+        return gf::PartKey{"label", {}, {}};
+    case gf::PartRole::track:
+        return gf::PartKey{"track", {}, {}};
+    case gf::PartRole::fill:
+        return gf::PartKey{"fill", {}, {}};
+    case gf::PartRole::thumb:
+        return gf::PartKey{"thumb", {}, {}};
+    case gf::PartRole::well:
+        return gf::PartKey{"well", {}, {}};
+    case gf::PartRole::glyph:
+        return gf::PartKey{"glyph", {}, {}};
+    default:
+        break;
+    }
+    return std::nullopt;
+}
 void paint_skin_part(gf::Painter& p, const gf::Control& control, gf::PartRole role, gf::Rect bounds,
                      gf::AnatomyStateSet states, std::optional<double> radius, gf::ControlVisualRole family) {
     gf::PartPaint part{};
     part.role = role;
+    part.key = skin_part_key(role);
     part.bounds = bounds;
     part.states = states;
     part.family = family;
@@ -316,6 +344,7 @@ void SuiteButton::on_paint(gf::Painter& p, gf::Rect) {
         const double tx = glyph_ == Glyph::none ? r.x + (r.width - m.width) * .5 : x;
         gf::PartPaint label{};
         label.role = gf::PartRole::label;
+        label.key = skin_part_key(gf::PartRole::label);
         label.states = states;
         label.family = gf::ControlVisualRole::button;
         label.text = text.read();

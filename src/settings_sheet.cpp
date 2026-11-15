@@ -82,6 +82,7 @@ void SettingCheck::on_paint(gf::Painter& p, gf::Rect) {
     }
     gf::PartPaint words{};
     words.role = gf::PartRole::label;
+    words.key = skin_part_key(gf::PartRole::label);
     words.states = states;
     words.family = gf::ControlVisualRole::choice;
     words.text = text.read();

@@ -48,6 +48,7 @@ class TopicHeading final : public gf::Button {
         const gf::Size size = p.measure_text_utf8(words, f);
         gf::PartPaint line{};
         line.role = gf::PartRole::label;
+        line.key = skin_part_key(gf::PartRole::label);
         line.states = states;
         line.family = gf::ControlVisualRole::button;
         line.text = words;
@@ -81,6 +82,7 @@ void HelpGlyph::on_paint(gf::Painter& p, gf::Rect) {
     const gf::AnatomyStateSet states = anatomy_states();
     gf::PartPaint glyph{};
     glyph.role = gf::PartRole::label;
+    glyph.key = skin_part_key(gf::PartRole::label);
     glyph.states = states;
     glyph.family = gf::ControlVisualRole::link;
     glyph.text = text.read();
@@ -92,6 +94,7 @@ void HelpGlyph::on_paint(gf::Painter& p, gf::Rect) {
     if (hovered_visual() || focus_cue_visible()) {
         gf::PartPaint rule{};
         rule.role = gf::PartRole::glyph;
+        rule.key = skin_part_key(gf::PartRole::glyph);
         rule.bounds = {8, 0, r.width - 16, r.height - 2.5};
         rule.states = states;
         rule.family = gf::ControlVisualRole::link;

@@ -97,6 +97,9 @@ const char* gloss_class(GlossTone tone);
 
 // `r` grown by `amount` on every side.
 gf::Rect outset(gf::Rect r, double amount);
+// The part key a skinned part is painted under, so `::part(<name>)` rules reach it (a part
+// painted with a role only matches `::role(...)` rules, and themes/playsuite writes `::part`).
+[[nodiscard]] std::optional<gf::PartKey> skin_part_key(gf::PartRole role);
 // Paints part `role` of `control` over `bounds` (the control's coordinates) through its
 // theme, in `states`, with corner radius `radius` when given; `family` is the recipe
 // the theme falls back to where no rule styles the part. A part the theme frames draws
