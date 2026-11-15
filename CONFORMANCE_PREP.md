@@ -2,13 +2,19 @@
 
 Branch `claude/conformance-prep`, on `main` 6c10fc0 (2026-10-27). That is the newest line: no other branch,
 and ~/Developer/pocket-bible `work/library` (2026-10-15) is older and was not used. Written against GUI.Forms main
-96d3696 (cp29-cp31, version 0.6.0). Code only: nothing here has been compiled or run. The integrator builds it.
+96d3696 (cp29-cp31, version 0.6.0), then brought to the integrator's `claude/batch-cp33` (cp32/cp33, still
+0.6.0). Code only: nothing here has been compiled or run. The integrator builds it.
+
+Two branches, following PlaySuite (owner ruling, option C, provisional):
+- `claude/conformance-prep` (this one) keeps `games::RoutedInput` as the fallback input layer.
+- `claude/conformance-raisers`, stacked on it, has the view on GUI.Forms' raisers directly (df3be11's port,
+  with `gf::key_event_arguments`). The view has no drag, so nothing goes on DragTracker.
 
 Pocket Library was not in the I6 product inventory. It still pinned GUI.Forms v0.2.1308 (e077f9d5), from
 before the 0.5 fold, so it needed the cp22-cp27 port as well as cp29-cp31. Its shell (src/, new-games/kit)
 is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over as three-way cherry-picks.
 
-## What was adapted (three commits)
+## What was adapted
 
 1. **Shell: GUI.Forms 0.5 property cells** (from games 3d395eb):
    - `set_<property>(v)` is an assignment, and every read is `.read()`;
@@ -32,15 +38,11 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
      - property cells: focusable, the search field's placeholder_text, maximum_length, font, accessible_name,
        visible and text, the cursor, and `visible.read()`;
      - `on_detaching_from_window(gf::SurfaceRoot&)`.
-   - **On_key and on_pointer are already gone at 96d3696** (cp29, GUI.Forms 56b6627ea), although the brief
-     listed them as still to come:
-     - option C (owner, provisional), as in PlaySuite: the view handles input in GUI.Forms' raisers directly
-       (on_mouse_down, on_mouse_move, on_mouse_wheel, on_mouse_leave, on_key_down). Every action is on the
-       press, so there are no clicks or drags to move; hover clears on leave;
-     - keys bubbling from the search field (`on_key_bubble`) take the same handling through
-       `games::key_arguments_of` (src/key_arguments.hpp, as in PlaySuite);
-     - `ControlStyles::opaque` is gone at 96d3696 (audit A17) and is no longer set;
-     - new test: books/pocketlibrary/tests/view_input_tests.cpp (ctest `pocketlibrary_view_input`).
+   - **On_key and on_pointer are already gone at 96d3696** (cp29, GUI.Forms 56b6627ea). On this branch the
+     view keeps its `handle_pointer` / `handle_key` through `games::RoutedInput` (src/routed_input.hpp,
+     PlaySuite's copy: a crossing carries the window position through cp33's `pointer_location()`; ctest
+     `routed_input`). The raiser-direct view and its test (`pocketlibrary_view_input`) are on
+     `claude/conformance-raisers`. `ControlStyles::opaque` is gone (audit A17) and is not set.
    - **Removed `Control::set_child_index`** (cp28): `set_child_index_from_top(id, 0)`.
    - **Application-first main:**
      - `Application::run` is a member, so main calls `Application::create` (with PlaySuite's theme package over
@@ -51,6 +53,25 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
    - **Exports:** every `gf::` name is exported or header-only, except Audio (a static library) and
      Worker/CancellationFlag (in GUIForms::Threading's list).
 
+4. **cp33 (claude/batch-cp33):**
+   - Linux: main calls `std::setlocale(LC_CTYPE, "")`; CMakeLists.txt checks for libc++ 22 on Linux
+     (`GAMES_LINUX_LIBCXX_22`) when the application builds; the native job installs libc++-22-dev and
+     libc++abi-22-dev with clang-22; tools/package_linux.py bundles libc++.so.1 and libc++abi.so.1 (and
+     libunwind.so.1 where ldd resolves it) with the LLVM licences.
+   - themes/playsuite and tools/make_theme.py stay byte-identical to PlaySuite's, now with its
+     `business-card` rules.
+   - Not needed: no form file; no relative pointer or release regions (nothing holds the pointer); WheelPhase,
+     timestamps and FontSpec's family and stack are appended fields; no class derives from a class made
+     final; the window band and WindowCapsule belong to the surface window manager. The std rules are not
+     adopted (owner choice).
+   - Business card and diagnostic overlay: Pocket Library had neither, so there is nothing to replace. Showing
+     GUI.Forms' card (as PlaySuite now does) would be a product choice; the theme already carries its rules.
+5. **The capsule** (src/capsule.cpp, PlaySuite's shell copy) gives the same result as PlaySuite's check: built
+   from GUI.Forms controls (`gf::Button` faces through the theme, switches bound to the model), with the pill
+   and the glyphs still hand-painted (expressible as theme parts and button images: product work) and the
+   title in Barlow Condensed through the product's own text sprites. Interface text uses bundled faces only,
+   so the title is a **GUI.Forms gap or owner decision** (a bundled face, or admitted display faces).
+
 ## What still waits on GUI.Forms
 
 - **Pins (placeholders):** .github/workflows/applications.yml `ref:` and tools/package_common.py
@@ -59,12 +80,13 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
   the GUI.Forms release that carries cp32/cp33 (0.6 numbering, with its cache assets), and to the
   template_harness main commit GUI.Forms pins. AGENTS.md's release paragraph and BUILDING.md's list of what the
   pinned revision added should be rewritten then.
-- **cp32/cp33 APIs:**
+- **GUI.Forms gaps:** W402 on a light-only package (PlaySuite's docs/TOOLKIT_REQUESTS.md); the capsule
+  title's display face. Closed by cp33: the public `key_event_arguments` and the crossing position.
+- **Fonts:**
   - font family: `FontSpec` gains `family` / `stack`. The 18 positional `FontSpec{role, ...}` initializers
     name no family. The book pages are set by the page compositor through the FreeType and HarfBuzz
     components directly, not through FontSpec. Under the interface/content font split (2026-11-13), that is
     the product's own content engine; only the shell's interface text takes the bundled families.
-  - grid engine, stock icons, final virtuals: not used.
 - **Remaining routed-phase overrides:** if a later checkpoint retires the preview and bubble virtuals, these
   7 move:
   - pocketlibrary_view.hpp: `on_key_bubble`;
@@ -84,7 +106,7 @@ Pocket Library needs Application, Audio, AudioLoopTransport, TextMasks, FreeType
 `--features all`:
 
 ```sh
-# in a GUI.Forms checkout at 96d3696 (or the conformance head)
+# in a GUI.Forms checkout at claude/batch-cp33 (or the conformance head)
 python3 -B tools/build_sdk.py --target macos-arm64 --prefix <sdk> --features all
 # in this branch's checkout
 cmake -S . -B .build/conformance -G Ninja -DCMAKE_BUILD_TYPE=Release \
@@ -100,7 +122,8 @@ Build every target before ctest (AGENTS.md: a `pocketlibrary`-only build leaves 
 portable core (`-DGAMES_BUILD_APPLICATION=OFF`) is unaffected by this branch.
 
 Tests that should cover it:
-- pocketlibrary_view_input;
+- routed_input (prep) or pocketlibrary_view_input (raisers);
+- on Linux: the libc++ configure check and tools/package_linux.py;
 - playsuite_theme (the package compiles with no finding but W201);
 - pocketlibrary_view_contract (the real view headless);
 - pocketlibrary_library, audio_policy, dogfood;
@@ -123,5 +146,7 @@ Tests that should cover it:
   set_theme_override are gone; docs/TOOLKIT_REQUESTS.md lists the theme gaps). Not carried: the .form window
   and Collection::set_development (PlaySuite's form-made shell), the card-back choice and the business card
   (PlaySuite only). Check the look by eye against PlaySuite.
+- The libc++ check runs before `find_package`; a Linux tree configured without llvm22.cmake now stops at
+  configure.
 - The 51 accessors that delete their rvalue overload can refuse a call on a temporary; only a compile shows
   these.
