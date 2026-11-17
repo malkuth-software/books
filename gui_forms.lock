@@ -1,4 +1,4 @@
 # The one place the GUI.Forms pin is written: .github/actions/gui-forms-checkout
 # checks this commit out at gui_forms/, and tools/package_common.py records it.
 repository = "malkuth-software/gui_forms"
-commit = "30ebd0d4d5388f2866d79089334d958787a12432"
+commit = "2b60b145188abae94edda82fb67f2f1f65fc6601"
