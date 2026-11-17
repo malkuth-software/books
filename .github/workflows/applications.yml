@@ -266,6 +266,29 @@ jobs:
           echo /usr/lib/llvm-22/bin >> "$GITHUB_PATH"
           echo "CC=clang" >> "$GITHUB_ENV"
           echo "CXX=clang++" >> "$GITHUB_ENV"
+      # GUI.Forms links the harness's static LLVM 22.1.8 runtime on Linux (one
+      # module, GUI.Forms 2026-11-15; gui_forms/cmake/llvm22.cmake refuses a
+      # build without GUI_FORMS_LLVM_RUNTIME): restore it, or build it with the
+      # packages' clang 22 as GUI.Forms' own CI does.
+      - name: Select the Linux LLVM runtime
+        id: linux-runtime
+        if: runner.os == 'Linux'
+        run: |
+          directory="$(python3 template_harness/harness/linux_runtime_manifest.py --directory-name)"
+          echo "GUI_FORMS_LLVM_RUNTIME=$PWD/.build/toolchain/$directory" >> "$GITHUB_ENV"
+          echo "directory=$directory" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        if: runner.os == 'Linux'
+        with:
+          path: .build/toolchain/${{ steps.linux-runtime.outputs.directory }}
+          key: linux-llvm-runtime-v1-${{ steps.linux-runtime.outputs.directory }}-${{ hashFiles('template_harness/harness/build_linux_runtimes.py', 'template_harness/harness/linux_runtime_manifest.py') }}
+      - name: Build the static Linux LLVM runtime
+        if: runner.os == 'Linux'
+        run: |
+          if [ ! -f "$GUI_FORMS_LLVM_RUNTIME/runtime-manifest.json" ]; then
+            python3 template_harness/harness/build_linux_runtimes.py --work "$RUNNER_TEMP/llvm-runtimes" --prefix "$GUI_FORMS_LLVM_RUNTIME" --jobs 4
+          fi
+          python3 template_harness/harness/linux_runtime_manifest.py "$GUI_FORMS_LLVM_RUNTIME"
       # GUI.Forms publishes a compiler cache (and on macOS its runtime) from each
       # tested main build. Restore the one for the pinned revision, checked against
       # its recorded digest; a miss only means compiling from source.
