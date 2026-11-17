@@ -8,9 +8,18 @@ import shutil
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-# PLACEHOLDER PIN (claude/conformance-prep): still v0.2.1308. The sources target GUI.Forms
-# main 96d3696 (0.6); the pin moves at the conformance rebase (CONFORMANCE_PREP.md).
-TOOLKIT_REVISION = "e077f9d5a5117312e65e8c3b741c4edd24013d56"
+
+
+def toolkit_revision():
+    """The GUI.Forms commit gui_forms.lock pins, the one place the pin is written."""
+    text = (ROOT / "gui_forms.lock").read_text(encoding="utf-8")
+    match = re.search(r'^commit\s*=\s*"([^"]+)"', text, re.MULTILINE)
+    if match is None:
+        raise RuntimeError("gui_forms.lock has no commit line")
+    return match.group(1)
+
+
+TOOLKIT_REVISION = toolkit_revision()
 
 
 def sdk_notices(prefix):

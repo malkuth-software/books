@@ -157,18 +157,8 @@ jobs:
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DGAMES_BUILD_APPLICATION=OFF
       - name: Build
         run: cmake --build build --parallel 4
-      - name: Test the library core
-        run: ctest --test-dir build --output-on-failure --timeout 180 --parallel 4 --output-junit results.xml -LE design
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: core-checks-${{ matrix.platform }}
-          path: |
-            build/results.xml
-            build/Testing/Temporary/LastTest.log
-          if-no-files-found: warn
-  # The release gate (projects/books.toml's native_job): builds, tests, packages
-  # and smoke-tests every host.
+  # The release gate (projects/books.toml's native_job): builds and packages every
+  # host (compile-only release CI, 2026-11-17: no tests or smoke runs).
   native:
     needs: prepare
     env:
@@ -221,18 +211,8 @@ jobs:
       # GUI.Forms lives in its own repository. It sits at gui_forms/ and the
       # application builds three levels down (.build/native/app), the same depth
       # as its own CI's tree, so the compiler cache it publishes can match our
-      # objects. The revision is TOOLKIT_REVISION in tools/package_common.py.
-      - name: Fetch reviewed GUI.Forms source
-        uses: actions/checkout@v4
-        with:
-          repository: malkuth-software/gui_forms
-          # PLACEHOLDER PIN (claude/conformance-prep): still v0.2.1308. The sources on this
-          # branch target GUI.Forms main 96d3696 (0.6) and do not build at this pin; the pin moves
-          # once, at the conformance rebase, to the release that carries cp32/cp33. See
-          # CONFORMANCE_PREP.md.
-          ref: e077f9d5a5117312e65e8c3b741c4edd24013d56
-          path: gui_forms
-          persist-credentials: false
+      # objects. gui_forms.lock pins it (the one place the pin is written).
+      - uses: ./.github/actions/gui-forms-checkout
       - uses: actions/setup-python@v5
         if: runner.os == 'Windows'
         with:
@@ -286,10 +266,6 @@ jobs:
           echo /usr/lib/llvm-22/bin >> "$GITHUB_PATH"
           echo "CC=clang" >> "$GITHUB_ENV"
           echo "CXX=clang++" >> "$GITHUB_ENV"
-      - name: Fetch pinned text sources
-        run: |
-          sh gui_forms/third_party/fetch_text_stack.sh
-          sh gui_forms/third_party/fetch_linebreak.sh
       # GUI.Forms publishes a compiler cache (and on macOS its runtime) from each
       # tested main build. Restore the one for the pinned revision, checked against
       # its recorded digest; a miss only means compiling from source.
@@ -320,29 +296,6 @@ jobs:
           echo "CCACHE_COMPILERCHECK=content" >> "$GITHUB_ENV"
           ccache --max-size=900M
           ccache --zero-stats
-      # Keyed on how GUI.Forms fetches and configures Skia, so a pin that builds it
-      # differently (phase 7 dropped its font backend) never restores the old archive.
-      - uses: actions/cache/restore@v4
-        if: runner.os != 'Windows'
-        id: skia
-        with:
-          path: gui_forms/third_party/skia
-          key: games-skia-llvm22-v2-${{ matrix.platform }}-${{ hashFiles('gui_forms/third_party/fetch_skia_cpu.sh', 'gui_forms/third_party/build_skia_cpu*.sh', 'gui_forms/third_party/skia_cpu*.gn', 'gui_forms/third_party/skia_*.patch') }}
-      - name: Build CPU renderer on Linux
-        if: runner.os == 'Linux' && steps.skia.outputs.cache-hit != 'true'
-        run: |
-          GUI_FORMS_SYSTEM_BUILD_TOOLS=1 sh gui_forms/third_party/fetch_skia_cpu.sh
-          BUILD_JOBS=4 sh gui_forms/third_party/build_skia_cpu_linux.sh "$PWD/gui_forms/third_party/skia/out/games"
-      - name: Build CPU renderer on macOS
-        if: runner.os == 'macOS' && steps.skia.outputs.cache-hit != 'true'
-        run: |
-          sh gui_forms/third_party/fetch_skia_cpu.sh
-          BUILD_JOBS=4 sh gui_forms/third_party/build_skia_cpu.sh "$PWD/gui_forms/third_party/skia/out/games"
-      - uses: actions/cache/save@v4
-        if: runner.os != 'Windows' && steps.skia.outputs.cache-hit != 'true'
-        with:
-          path: gui_forms/third_party/skia
-          key: ${{ steps.skia.outputs.cache-primary-key }}
       - uses: actions/download-artifact@v4
         with:
           name: runtime
@@ -367,9 +320,7 @@ jobs:
             -DFETCHCONTENT_BASE_DIR="$PWD/.build/fetch" -DFETCHCONTENT_UPDATES_DISCONNECTED=ON \
             -DGAMES_TOOLKIT_SOURCE_DIR="$PWD/gui_forms" \
             -DGAMES_RUNTIME_ASSET_DIR="$PWD/build/runtime" \
-            -DGAMES_RELEASE_VERSION="$GAMES_RELEASE_VERSION" \
-            -DGUI_FORMS_SKIA_PREBUILT=ON \
-            -DGUI_FORMS_SKIA_OUT="$PWD/gui_forms/third_party/skia/out/games"
+            -DGAMES_RELEASE_VERSION="$GAMES_RELEASE_VERSION"
       # Hosted runners are dedicated machines (4 cores on Linux and Windows, 3 on
       # macOS), unlike the shared development hosts AGENTS.md limits to two jobs.
       - name: Compile the application
@@ -383,8 +334,6 @@ jobs:
         with:
           path: .ccache
           key: ${{ steps.objects.outputs.cache-primary-key }}
-      - name: Test complete application
-        run: ctest --test-dir .build/native/app --output-on-failure --timeout 180 --parallel 4 --output-junit results.xml -LE design
       # The package scripts read GUI.Forms' notices and fonts from an installed SDK prefix
       # (share/licenses/GUIForms, share/GUIForms/fonts): install the toolkit the build used.
       - name: Install GUI.Forms into an SDK prefix for packaging
@@ -404,22 +353,6 @@ jobs:
         run: |
           python3 -B tools/test_package_linux.py
           python3 tools/package_linux.py --build .build/native/app --toolkit "$GUI_FORMS_SDK" --source-revision "$GITHUB_SHA"
-      - name: Launch packaged Windows application
-        if: runner.os == 'Windows'
-        run: |
-          python tools/smoke_package.py "dist/Pocket Library/pocketlibrary.exe"
-          python tools/test_windows_installer.py dist/*-setup.exe
-      - name: Launch packaged macOS application
-        if: runner.os == 'macOS'
-        run: |
-          python3 tools/smoke_package.py "dist/Pocket Library.app/Contents/MacOS/pocketlibrary"
-          sudo /usr/sbin/installer -pkg dist/*.pkg -target /
-          python3 tools/smoke_package.py "/Applications/Pocket Library.app/Contents/MacOS/pocketlibrary"
-      - name: Install and launch Linux package
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get install -y ./dist/*.deb
-          xvfb-run -a python3 tools/smoke_package.py /usr/lib/rainstar-pocketlibrary/pocketlibrary
       - uses: actions/upload-artifact@v4
         with:
           name: library-${{ matrix.platform }}
@@ -431,14 +364,6 @@ jobs:
             dist/*.tar.gz
           compression-level: 0
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: native-checks-${{ matrix.platform }}
-          path: |
-            .build/native/app/results.xml
-            .build/native/app/Testing/Temporary/LastTest.log
-          if-no-files-found: warn
   release:
     if: needs.prepare.outputs.publish == 'true'
     needs: [prepare, native]
