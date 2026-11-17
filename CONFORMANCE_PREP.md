@@ -110,6 +110,24 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
      override's `colour_scheme` is `set()`. Button, CheckBox and TextBox fonts stay plain FontSpec cells.
    - **Renames:** `HorizontalAlignment::far` is `end`; `FontContext::interface` is `factory_bundle`. No
      Ribbon, DateTimePicker or STXlib status names are used.
+   - **First returns (integrator, #483 SDK 31b48906e; 6 of 8 passed):**
+     - playsuite_theme: #483 reads a `::part()` name in kebab case (`registered_name_from_kebab`), so
+       make_theme.py writes `business-card::part(vendor-name)` and `::part(close-mark)`; regenerated, still
+       byte-identical with PlaySuite's (fixed there too).
+     - pocketlibrary_view_contract ("the help panel after F1"): not from this port (it failed the same way at
+       7306d73 and 54db618 on cp32, and this branch leaves the view's timer, publish and help paths alone).
+       The timeout now prints the surface's counters (generation, publishes, dropped acquires, reads, write
+       lease, carried frame) and whether a wake is scheduled, to tell a view that never published from one
+       whose writes were refused. The integrator's GAMES_RUNTIME_ASSET_DIR was PlaySuite's runtime-modular,
+       which has no `pocketlibrary/` (parts, faces, sounds); rerun with Pocket Library's own prepared assets
+       before reading the cause.
+     - Running the app: `--smoke-test` (there is no `--smoke`). The build already copies
+       GAMES_RUNTIME_ASSET_DIR into `pocketlibrary.app/Contents/Resources/assets`; that directory must be
+       Pocket Library's: `python3 tools/prepare_portable_assets.py --output <dir> --ffmpeg ffmpeg` (fetches the
+       pinned `library-data` parts) and `python3 tools/verify_portable_assets.py --runtime <dir>`, then
+       reconfigure with `-DGAMES_RUNTIME_ASSET_DIR=<dir>` and rebuild.
+     - With the pin move: the workflow's and BUILDING.md's `fetch_text_stack.sh` / `fetch_linebreak.sh` steps
+       go (#483 has neither script); they stay while the pin is the e077f9d5 placeholder.
 
 ## What still waits on GUI.Forms
 

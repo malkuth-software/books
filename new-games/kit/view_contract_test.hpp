@@ -121,7 +121,22 @@ inline gf::LiveSurfaceFrame contract_next_frame(gf::Window& window, std::shared_
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
-    throw std::runtime_error(std::string("no frame was published in time: ") + waiting_for);
+    // What the surface and the scheduler say at the deadline, so a failure tells a game
+    // that never published (no publishes, nothing scheduled) from one whose publishes
+    // were refused (dropped acquires: every write slot still held) or carried.
+    std::string state = " (no surface was presented)";
+    if (surface) {
+        const gf::LiveSurfaceSnapshot snapshot = (*surface).snapshot();
+        state = " (surface: generation " + std::to_string(snapshot.published_generation) + " after " +
+                std::to_string(after) + ", publishes " + std::to_string(snapshot.publishes) +
+                ", dropped acquires " + std::to_string(snapshot.dropped_acquires) + ", reads " +
+                std::to_string(snapshot.read_acquires) + ", write active " +
+                (snapshot.write_active ? "yes" : "no") + ", carries previous " +
+                (snapshot.carries_previous_frame ? "yes" : "no") + ")";
+    }
+    const stxlib::Optional<gf::FrameTime> wake = window.next_wake();
+    const std::string scheduled = wake.present() ? " (a wake is scheduled)" : " (nothing is scheduled)";
+    throw std::runtime_error(std::string("no frame was published in time: ") + waiting_for + state + scheduled);
 }
 
 inline std::uint64_t contract_generation(const std::shared_ptr<gf::LiveSurface>& surface) {
