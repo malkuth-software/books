@@ -487,14 +487,14 @@ label.settings-heading { color: var(--settings-heading); }
 /* The business card (GUI.Forms' business-card: one card for every program). PlaySuite's card is bone paper stock with black ink, the name turning to gold foil under the pointer. GUI.Forms' card (business-card parity) turns in the hand and paints both faces through these rules first, so the turned card keeps this stock; the stock is a paper-fibre material, and the remarks rise around the card over the dimmed window, in a pale ink. */
 business-card::part(shadow) { background: var(--card-shadow); border: none; box-shadow: none; }
 business-card::part(stock) { background: pattern(paper-fibre, #e9e3d2, #d8cfb6, 48px); border: 1px solid var(--card-stock-edge); box-shadow: inset 0 1px 0 #f7f3e8; }
-business-card::part(vendor_name) { color: var(--card-ink); }
-business-card:hover::part(vendor_name) { color: var(--card-foil); }
+business-card::part(vendor-name) { color: var(--card-ink); }
+business-card:hover::part(vendor-name) { color: var(--card-foil); }
 business-card::part(rule) { background: var(--card-soft-ink); border: none; }
 business-card::part(product) { color: var(--card-ink); }
 business-card::part(website) { color: var(--card-soft-ink); }
 business-card:hover::part(website) { color: var(--card-foil); }
 business-card::part(copyright) { color: var(--card-soft-ink); }
 business-card::part(remark) { color: var(--card-remark-ink); }
-business-card::part(close_mark) { color: var(--card-soft-ink); }
-business-card:hover::part(close_mark) { color: var(--card-foil); }
+business-card::part(close-mark) { color: var(--card-soft-ink); }
+business-card:hover::part(close-mark) { color: var(--card-foil); }
 business-card::part(focus) { border: 1px solid var(--card-focus); background: transparent; box-shadow: none; }

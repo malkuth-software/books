@@ -382,16 +382,16 @@ def write_business_card(sheet: Sheet) -> None:
     sheet.rule("business-card::part(stock)",
                ["background: pattern(paper-fibre, #e9e3d2, #d8cfb6, 48px)", f"border: 1px solid {stock_edge}",
                 "box-shadow: inset 0 1px 0 #f7f3e8"])
-    sheet.rule("business-card::part(vendor_name)", [f"color: {ink}"])
-    sheet.rule("business-card:hover::part(vendor_name)", [f"color: {foil}"])
+    sheet.rule("business-card::part(vendor-name)", [f"color: {ink}"])
+    sheet.rule("business-card:hover::part(vendor-name)", [f"color: {foil}"])
     sheet.rule("business-card::part(rule)", [f"background: {soft_ink}", "border: none"])
     sheet.rule("business-card::part(product)", [f"color: {ink}"])
     sheet.rule("business-card::part(website)", [f"color: {soft_ink}"])
     sheet.rule("business-card:hover::part(website)", [f"color: {foil}"])
     sheet.rule("business-card::part(copyright)", [f"color: {soft_ink}"])
     sheet.rule("business-card::part(remark)", [f"color: {remark_ink}"])
-    sheet.rule("business-card::part(close_mark)", [f"color: {soft_ink}"])
-    sheet.rule("business-card:hover::part(close_mark)", [f"color: {foil}"])
+    sheet.rule("business-card::part(close-mark)", [f"color: {soft_ink}"])
+    sheet.rule("business-card:hover::part(close-mark)", [f"color: {foil}"])
     sheet.rule("business-card::part(focus)", [f"border: 1px solid {focus}", "background: transparent", "box-shadow: none"])
 
 
