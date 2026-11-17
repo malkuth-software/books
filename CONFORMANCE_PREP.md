@@ -5,6 +5,9 @@ and ~/Developer/pocket-bible `work/library` (2026-10-15) is older and was not us
 96d3696 (cp29-cp31, version 0.6.0), then brought to the integrator's `claude/batch-cp33` (cp32/cp33, still
 0.6.0). Code only: nothing here has been compiled or run. The integrator builds it.
 
+`claude/conformance-port` (on prep fecc076) carries it to GUI.Forms #483 (checkpoint/2026-11-15-cp32, read at
+48a8560a6): section 6 below.
+
 Two branches, following PlaySuite (owner ruling, option C, provisional):
 - `claude/conformance-prep` (this one) keeps `games::RoutedInput` as the fallback input layer.
 - `claude/conformance-raisers`, stacked on it, has the view on GUI.Forms' raisers directly (df3be11's port,
@@ -84,6 +87,30 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
    - themes/playsuite carries PlaySuite's card-parity rules (paper-fibre stock, copyright and remark inks),
      byte-identical; Pocket Library still shows no business card.
 
+6. **GUI.Forms #483 (`claude/conformance-port`):**
+   - **Configure:** `find_package(GUIForms)` no longer asks for the FreeType and HarfBuzz components (GUI.Forms
+     has neither since 2026-11-16), and the source build no longer sets the removed
+     GUI_FORMS_ENABLE_HARFBUZZ_TEXT.
+   - **The page compositor on STXlib (owner, "Pocket Library clean-out"):** `pl::page::FontSet` keeps its
+     interface but drives no engine of its own. Each face is an `stxlib::glyphs::Typeface` (open_typeface,
+     shared), a `Face` (masks: Fit::light, the outline shifted by the 1/64-pixel phase,
+     `DrawStyle::thicken` for synthesized small capitals) and a `Shaper` (runs tagged with script Latn/Grek/
+     Hebr and language ENG/ELL/IWR, features c2sc/onum/lnum/mark/mkmk, the em in layout units as the size,
+     so advances come back in layout units, unhinted). Metrics are the font's numbers (FreeType's rule, OS/2
+     x and cap heights, else the x and H boxes); glyph boxes are `Typeface::ink_box`. `pl_page` links
+     `stxlib::algorithms`, found by the installed package (`find_dependency(stxlib)`) or, for a source build,
+     again from the prefix the toolkit chose (`GUI_FORMS_STX_PREFIX_DIR`, read from its directory scope,
+     since imported targets do not leave it). Pocket Library now depends on no FreeType or HarfBuzz.
+     `ShapeFeatures::cluster_per_character` is gone (no caller; STXlib's shaper has one cluster level, a
+     base with its marks). New test `pocketlibrary_font_set` (books/pocketlibrary/tests/font_set_tests.cpp).
+   - **D15 V1, stxlib::Optional:** Label fonts, `cursor` and `expanded_state` are written through
+     `Optional<T>::of`; PartPaint's `measured_text` and `corner_radius` through `set()`; `skin_part_key`
+     returns `stxlib::Optional<PartKey>`; ButtonContentInk's authored colour is `none()`; `next_wake` is read
+     through `value()`; the theme test reads the title's font with `present()` and `value_or`; the presentation
+     override's `colour_scheme` is `set()`. Button, CheckBox and TextBox fonts stay plain FontSpec cells.
+   - **Renames:** `HorizontalAlignment::far` is `end`; `FontContext::interface` is `factory_bundle`. No
+     Ribbon, DateTimePicker or STXlib status names are used.
+
 ## What still waits on GUI.Forms
 
 - **Pins (placeholders):** .github/workflows/applications.yml `ref:` and tools/package_common.py
@@ -96,8 +123,8 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
   capsule title's display face (app-font API, composites). Closed by cp33: the public `key_event_arguments` and the crossing position.
 - **Fonts:**
   - font family: `FontSpec` gains `family` / `stack`. The 18 positional `FontSpec{role, ...}` initializers
-    name no family. The book pages are set by the page compositor through the FreeType and HarfBuzz
-    components directly, not through FontSpec. Under the interface/content font split (2026-11-13), that is
+    name no family. The book pages are set by the page compositor through STXlib's glyph engine directly
+    (section 6), not through FontSpec. Under the interface/content font split (2026-11-13), that is
     the product's own content engine; only the shell's interface text takes the bundled families.
 - **Remaining routed-phase overrides:** if a later checkpoint retires the preview and bubble virtuals, these
   7 move:
@@ -114,8 +141,8 @@ is a copy of PlaySuite's, so the shell part of PlaySuite's port was carried over
 
 ## How the integrator builds it
 
-Pocket Library needs Application, Audio, AudioLoopTransport, TextMasks, FreeType and HarfBuzz, so
-`--features all`:
+Pocket Library needs Application, Audio, AudioLoopTransport and TextMasks (and STXlib's `stxlib::algorithms`,
+which the package finds beside itself), so `--features all`:
 
 ```sh
 # in a GUI.Forms checkout at claude/batch-cp33 (or the conformance head)
@@ -134,6 +161,8 @@ Build every target before ctest (AGENTS.md: a `pocketlibrary`-only build leaves 
 portable core (`-DGAMES_BUILD_APPLICATION=OFF`) is unaffected by this branch.
 
 Tests that should cover it:
+- pocketlibrary_font_set (the faces on STXlib), and by eye a spread of the Bible and of a Literata book against
+  the FreeType rendering;
 - routed_input (prep) or pocketlibrary_view_input (raisers);
 - on Linux: the libc++ configure check and tools/package_linux.py;
 - playsuite_theme (the package compiles with no finding but W201);
@@ -143,6 +172,13 @@ Tests that should cover it:
 - the full ctest.
 
 ## Risks (not checked without a build)
+
+- **STXlib page text:** metrics and advances now come from STXlib (its numbers follow FreeType and HarfBuzz,
+  with its own rounding), so line breaks can move by a word and page counts and saved places can shift;
+  thickening grows to the right and upward (FreeType's emboldening grew both ways), so small capitals sit
+  about half a 26.6 step to the right. Light hinting is STXlib's y-only fit, not FreeType's autohinter.
+- **stxlib::algorithms twice:** pl_page links the static archive that GUI.Forms links privately. With one
+  module that is one copy; if any GUI.Forms library were shared again, check for a second stxlib::state.
 
 - **The port is larger than PlaySuite's.** It went v0.2.1308 → 0.6 in one step, by name sweeps (removed
   identifiers, property setters, getters of property cells) and by the PlaySuite cherry-picks. A cell read

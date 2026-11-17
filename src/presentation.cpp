@@ -83,7 +83,7 @@ void GameButton::on_paint(gf::Painter& p, gf::Rect) {
     // lowlight lines a point inside it; as the theme's border and first keyline ring,
     // inside the part, that is r grown by half a point.
     paint_skin_part(p, *this, gf::PartRole::face, outset(r, .5), states, 5.5);
-    const ButtonContentInk ink{gf::ControlVisualRole::button, states, std::nullopt};
+    const ButtonContentInk ink{gf::ControlVisualRole::button, states, stxlib::Optional<gf::Color>::none()};
     paint_button_content(p, r, text.read(), ink, {down ? 1.0 : 0, down ? 1.0 : 0}, selected.read());
     // The focus ring was a 1-point stroke centred on {4, 4, w - 8, h - 9}, radius 3.
     if (focus_cue_visible())

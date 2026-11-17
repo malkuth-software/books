@@ -582,7 +582,7 @@ void PocketLibraryView::handle_pointer(gf::PointerEvent& event) {
             const int hover = event.action == gf::PointerAction::leave ? -1 : under;
             if (hover != hover_) {
                 hover_ = hover;
-                cursor = hover >= 0 ? gf::CursorKind::hand : gf::CursorKind::arrow;
+                cursor = stxlib::Optional<gf::CursorKind>::of(hover >= 0 ? gf::CursorKind::hand : gf::CursorKind::arrow);
                 request_frame();
             }
             return;
@@ -604,7 +604,7 @@ void PocketLibraryView::handle_pointer(gf::PointerEvent& event) {
     }
     if (event.action == gf::PointerAction::move) {
         const bool over = reader_.contents_shown() ? reader_.contents_entry_at(x, y) >= 0 : reader_.side_at(x, y) != 0;
-        cursor = over ? gf::CursorKind::hand : gf::CursorKind::arrow;
+        cursor = stxlib::Optional<gf::CursorKind>::of(over ? gf::CursorKind::hand : gf::CursorKind::arrow);
         return;
     }
     if (event.action == gf::PointerAction::down && event.button == gf::PointerButton::primary) {

@@ -131,30 +131,30 @@ gf::Rect outset(gf::Rect r, double amount) {
 }
 // The theme names a part by its key's part name (`::part(face)`); a part painted with
 // a role only matches `::role(face)` rules. The names are the stock parts' own.
-std::optional<gf::PartKey> skin_part_key(gf::PartRole role) {
+stxlib::Optional<gf::PartKey> skin_part_key(gf::PartRole role) {
     switch (role) {
     case gf::PartRole::face:
-        return gf::PartKey{"face", {}, {}};
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"face", {}, {}});
     case gf::PartRole::focus:
-        return gf::PartKey{"focus", {}, {}};
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"focus", {}, {}});
     case gf::PartRole::indicator:
-        return gf::PartKey{"indicator", {}, {}};
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"indicator", {}, {}});
     case gf::PartRole::label:
-        return gf::PartKey{"label", {}, {}};
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"label", {}, {}});
     case gf::PartRole::track:
-        return gf::PartKey{"track", {}, {}};
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"track", {}, {}});
     case gf::PartRole::fill:
-        return gf::PartKey{"fill", {}, {}};
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"fill", {}, {}});
     case gf::PartRole::thumb:
-        return gf::PartKey{"thumb", {}, {}};
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"thumb", {}, {}});
     case gf::PartRole::well:
-        return gf::PartKey{"well", {}, {}};
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"well", {}, {}});
     case gf::PartRole::glyph:
-        return gf::PartKey{"glyph", {}, {}};
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"glyph", {}, {}});
     default:
         break;
     }
-    return std::nullopt;
+    return stxlib::Optional<gf::PartKey>::none();
 }
 void paint_skin_part(gf::Painter& p, const gf::Control& control, gf::PartRole role, gf::Rect bounds,
                      gf::AnatomyStateSet states, std::optional<double> radius, gf::ControlVisualRole family) {
@@ -164,7 +164,9 @@ void paint_skin_part(gf::Painter& p, const gf::Control& control, gf::PartRole ro
     part.bounds = bounds;
     part.states = states;
     part.family = family;
-    part.corner_radius = radius;
+    if (radius.has_value()) {
+        part.corner_radius.set(*radius);
+    }
     gf::paint_part(p, control, part);
 }
 void paint_glyph(gf::Painter& p, gf::Rect r, Glyph glyph, gf::Color ink, bool crossed) {
@@ -349,7 +351,7 @@ void SuiteButton::on_paint(gf::Painter& p, gf::Rect) {
         label.family = gf::ControlVisualRole::button;
         label.text = text.read();
         label.font = f;
-        label.measured_text = m;
+        label.measured_text.set(m);
         const gf::Point baseline{tx + shift, r.y + (r.height + f.size * .72) * .5 + shift};
         gf::paint_text_part_at(p, *this, label, baseline, m.width);
     }

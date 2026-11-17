@@ -87,7 +87,7 @@ void SettingCheck::on_paint(gf::Painter& p, gf::Rect) {
     words.family = gf::ControlVisualRole::choice;
     words.text = text.read();
     words.font = f;
-    words.measured_text = label;
+    words.measured_text.set(label);
     gf::paint_text_part_at(p, *this, words, {box.x + s + 9, (b.height + f.size * .72) * .5}, label.width);
 }
 SettingsPage::SettingsPage(gf::StableId id) : ScrollableControl(std::move(id)) {
@@ -100,7 +100,7 @@ std::shared_ptr<gf::Label> SettingsPage::text_label(const std::string& text, dou
         games::stable_id("settings." + std::to_string(built_) + ".label." +
                      std::to_string(children().size())),
         text);
-    (*label).font = gf::FontSpec{gf::FontRole::content, size, static_cast<std::uint16_t>(weight), false};
+    (*label).font = stxlib::Optional<gf::FontSpec>::of(gf::FontSpec{gf::FontRole::content, size, static_cast<std::uint16_t>(weight), false});
     (*label).classes = std::vector<std::string>{"settings-text"};
     (*label).vertical_alignment = gf::VerticalAlignment::center;
     (*label).text_wrapping = gf::TextWrapping::word;
@@ -177,7 +177,7 @@ void SettingsPage::build(CommandSource* game, const std::string& game_title) {
         }
         Row row{Shape::volume, m.toggle, box, {bar}, nullptr, nullptr};
         row.readout = text_label("", 15, 600);
-        (*row.readout).alignment = gf::HorizontalAlignment::far;
+        (*row.readout).alignment = gf::HorizontalAlignment::end;
         add_row(std::move(row));
     }
     add_row({Shape::heading, "", heading("Motion"), {}, nullptr, nullptr});
@@ -219,7 +219,7 @@ void SettingsPage::build(CommandSource* game, const std::string& game_title) {
                 gf::on((*bar).scroll(), *this, &SettingsPage::slid, at);
                 row.items.push_back(bar);
                 row.readout = text_label("", 15, 600);
-                (*row.readout).alignment = gf::HorizontalAlignment::far;
+                (*row.readout).alignment = gf::HorizontalAlignment::end;
             }
             if (!s.note.empty())
                 row.note = text_label(s.note, 13, 400);

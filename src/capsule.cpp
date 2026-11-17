@@ -23,7 +23,7 @@ void CommandCapsule::initialize_control_tree() {
     CommandCapsuleControl::initialize_control_tree();
     title_label_ = std::dynamic_pointer_cast<gf::Label>(child("title"));
     if (title_label_)
-        (*title_label_).font = title_face_.font(kTitleSize);
+        (*title_label_).font = stxlib::Optional<gf::FontSpec>::of(title_face_.font(kTitleSize));
     back_ = gf::make_control<SuiteButton>(gf::StableId("capsule.back"), "", GlossTone::smoke);
     (*back_).set_glyph(Glyph::back);
     (*back_).set_radius(SuiteButton::round);

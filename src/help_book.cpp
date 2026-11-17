@@ -10,7 +10,7 @@ namespace {
 std::shared_ptr<gf::Label> front_line(const std::string& id, std::string_view text, std::uint16_t weight) {
     std::shared_ptr<gf::Label> label =
         gf::make_control<gf::Label>(games::stable_id("help.front." + id), std::string(text));
-    (*label).font = gf::FontSpec{gf::FontRole::content, 16, weight, false};
+    (*label).font = stxlib::Optional<gf::FontSpec>::of(gf::FontSpec{gf::FontRole::content, 16, weight, false});
     (*label).classes = std::vector<std::string>{"help-text"};
     (*label).text_wrapping = gf::TextWrapping::word;
     return label;
@@ -22,10 +22,11 @@ class TopicHeading final : public gf::Button {
         classes = std::vector<std::string>{"topic-heading"};
         accessible_name = text.read();
         // A disclosure: assistive technology hears whether its topic is open.
-        expanded_state = false;
+        expanded_state = stxlib::Optional<bool>::of(false);
     }
     [[nodiscard]] bool expanded() const {
-        return expanded_state.read().value_or(false);
+        const stxlib::Optional<bool> state = expanded_state.read();
+        return state.value_or(false);
     }
     void on_paint(gf::Painter& p, gf::Rect) override {
         // themes/playsuite colours the parts (button.topic-heading): the face, the
@@ -54,7 +55,7 @@ class TopicHeading final : public gf::Button {
         line.text = words;
         line.font = f;
         line.tone = tone;
-        line.measured_text = size;
+        line.measured_text.set(size);
         gf::paint_text_part_at(p, *this, line, baseline, size.width);
     }
 };
@@ -87,7 +88,7 @@ void HelpGlyph::on_paint(gf::Painter& p, gf::Rect) {
     glyph.family = gf::ControlVisualRole::link;
     glyph.text = text.read();
     glyph.font = f;
-    glyph.measured_text = size;
+    glyph.measured_text.set(size);
     gf::paint_text_part_at(p, *this, glyph, at, size.width);
     // The underline was a 1-point line centred on y = h - 3 from x 8 to w - 8: the
     // underline mark's rule lies along the bottom of its box.
@@ -116,7 +117,7 @@ void HelpPages::add_topic(int entry, std::string topic, std::string title,
         gf::make_control<TopicHeading>(games::stable_id("help.topic." + key), std::move(title));
     std::shared_ptr<gf::Label> label = gf::make_control<gf::Label>(
         games::stable_id("help.body." + key), std::string(body));
-    (*label).font = gf::FontSpec{gf::FontRole::content, 17, 400, false};
+    (*label).font = stxlib::Optional<gf::FontSpec>::of(gf::FontSpec{gf::FontRole::content, 17, 400, false});
     (*label).classes = std::vector<std::string>{"help-text"};
     (*label).text_wrapping = gf::TextWrapping::word;
     (*label).visible = false;
@@ -192,7 +193,7 @@ void HelpPages::select(int entry, std::string_view topic) {
     order_.push_back(selected);
     for (int i = 0; i < static_cast<int>(bodies_.size()); ++i) {
         (*bodies_[i]).visible = i == selected;
-        (*headings_[i]).expanded_state = i == selected;
+        (*headings_[i]).expanded_state = stxlib::Optional<bool>::of(i == selected);
         (*headings_[i]).invalidate(gf::Dirty::paint);
         if (i != selected)
             order_.push_back(i);
@@ -204,7 +205,7 @@ void HelpPages::toggle(int index) {
     const std::size_t i = static_cast<std::size_t>(index);
     const bool expanded = !(*bodies_[i]).visible.read();
     (*bodies_[i]).visible = expanded;
-    (*headings_[i]).expanded_state = expanded;
+    (*headings_[i]).expanded_state = stxlib::Optional<bool>::of(expanded);
     (*headings_[i]).invalidate(gf::Dirty::paint);
     invalidate(gf::Dirty::layout | gf::Dirty::paint);
 }

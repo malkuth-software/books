@@ -63,7 +63,7 @@ int main() {
             std::shared_ptr<gf::Control> root = gf::make_control<gf::Control>(gf::StableId("theme.root"));
             gf::Window window(*created.application, root, gf::Size{1060, 680});
             gf::PresentationOverrides light{};
-            light.colour_scheme = gf::ColourScheme::light;
+            light.colour_scheme.set(gf::ColourScheme::light);
             window.set_presentation_overrides(light);
             const std::shared_ptr<const gf::Theme> theme = window.theme_ptr();
             require(theme == (*(*created.application).resources()).theme_ptr(), "the window shows the application's theme");
@@ -88,17 +88,17 @@ int main() {
             const std::shared_ptr<gf::Label> title = std::dynamic_pointer_cast<gf::Label>((*capsule).child("title"));
             require(title != nullptr, "the capsule's title is the document's label");
             // The label's own font (unset would mean inherited): the capsule sets it.
-            const std::optional<gf::FontSpec> own_font = (*title).font.read();
-            require(own_font.has_value(), "the capsule sets the title's font");
-            const gf::FontSpec font = *own_font;
+            const stxlib::Optional<gf::FontSpec> own_font = (*title).font.read();
+            require(own_font.present(), "the capsule sets the title's font");
+            const gf::FontSpec font = own_font.value_or(gf::FontSpec{});
             require(font.weight == 700 && font.role == gf::FontRole::control, "the title's face is bold control text");
 #if defined(GAMES_GUI_FORMS_APP_FONTS)
             require(font.family != gf::FontFamilyId{} && font.family == gf::app_font_family_named("Barlow Condensed"),
                     "the title is in the app-loaded Barlow Condensed");
             require(gf::app_font_family_state(font.family) == gf::AppFontState::live, "the family is live");
             require(gf::admit_font(font, gf::FontContext::composite).family == font.family &&
-                        gf::admit_font(font, gf::FontContext::interface).family == gf::FontFamilyId{},
-                    "the composite's context keeps the family, the interface context drops it");
+                        gf::admit_font(font, gf::FontContext::factory_bundle).family == gf::FontFamilyId{},
+                    "the composite's context keeps the family, the factory bundle's drops it");
 #endif
             const std::shared_ptr<games::HelpGlyph> glyph =
                 gf::make_control<games::HelpGlyph>(gf::StableId("theme.help"), "?");

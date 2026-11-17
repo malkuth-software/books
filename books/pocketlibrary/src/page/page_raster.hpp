@@ -67,8 +67,8 @@ struct RasterCounters final {
     std::uint64_t glyph_cache_bytes{0U};
 };
 
-// Draws pages to pixels in the toolkit's text profile: FreeType light auto-hinting,
-// greyscale, horizontal phase kept to 1/64 pixel, coverage blended over the paper in
+// Draws pages to pixels in the toolkit's text profile: STXlib's light fit (hinted
+// along y only), greyscale, horizontal phase kept to 1/64 pixel, coverage blended over the paper in
 // sRGB values with gamma 1.0. Holds
 // the glyph-coverage cache. The FontSet is borrowed and must outlive the
 // rasterizer.

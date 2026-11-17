@@ -20,8 +20,10 @@ target_link_libraries(pocketlibrary_library_tests PRIVATE pl_core)
 add_test(NAME pocketlibrary_library COMMAND pocketlibrary_library_tests)
 
 if(GAMES_BUILD_APPLICATION)
-  # pl_page sets and prints the pages: the Pocket Bible's compositor on the pinned
-  # toolkit's own HarfBuzz and FreeType, and the paper engine's India paper.
+  # pl_page sets and prints the pages: the Pocket Bible's compositor on STXlib's
+  # glyph engine (Typeface, Face and Shaper of stxlib::glyphs, in
+  # stxlib::algorithms: the text engine GUI.Forms itself draws with), and the
+  # paper engine's India paper. No FreeType or HarfBuzz.
   add_library(pl_page STATIC
     "${GAME_MODULE_DIR}/src/page/font_set.cpp"
     "${GAME_MODULE_DIR}/src/page/text_layout.cpp"
@@ -30,16 +32,23 @@ if(GAMES_BUILD_APPLICATION)
     "${GAME_MODULE_DIR}/src/book_layout.cpp")
   target_include_directories(pl_page PUBLIC "${GAME_MODULE_DIR}/src")
   target_link_libraries(pl_page PUBLIC pl_core paper_core)
-  # An installed GUI.Forms exports its pinned text stack as GUIForms::FreeType and
-  # GUIForms::HarfBuzz; a source build (add_subdirectory) names it freetype and harfbuzz.
-  if(TARGET GUIForms::FreeType)
-    target_link_libraries(pl_page PRIVATE GUIForms::FreeType GUIForms::HarfBuzz)
-  else()
-    target_link_libraries(pl_page PRIVATE freetype harfbuzz)
+  # Both an installed GUI.Forms (its package finds STXlib) and a source build
+  # (cmake/Stx.cmake imports the stx package's STXlib) define stxlib::algorithms.
+  if(NOT TARGET stxlib::algorithms)
+    message(FATAL_ERROR "pl_page needs STXlib's stxlib::algorithms, which GUI.Forms brings: "
+                        "configure with GUIForms_DIR or GAMES_TOOLKIT_SOURCE_DIR")
   endif()
+  target_link_libraries(pl_page PRIVATE stxlib::algorithms)
   if(NOT MSVC)
     target_compile_options(pl_page PRIVATE -Wall -Wextra -ffp-contract=off)
   endif()
+
+  # The faces on STXlib's glyph engine, read from the library's own fonts.
+  add_executable(pocketlibrary_font_set_tests "${GAME_MODULE_DIR}/tests/font_set_tests.cpp")
+  target_link_libraries(pocketlibrary_font_set_tests PRIVATE pl_page)
+  target_compile_definitions(pocketlibrary_font_set_tests PRIVATE
+    PL_FONT_DIR="${GAME_MODULE_DIR}/assets/fonts")
+  add_test(NAME pocketlibrary_font_set COMMAND pocketlibrary_font_set_tests)
 
   add_executable(pocketlibrary_contract_tests "${GAME_MODULE_DIR}/tests/view_contract_tests.cpp")
   target_include_directories(pocketlibrary_contract_tests PRIVATE "${CMAKE_SOURCE_DIR}/new-games/kit")

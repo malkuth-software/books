@@ -274,7 +274,7 @@ int main(int argc,char** argv) {
         // PlaySuite's look is one light look: its theme declares the light scheme only,
         // and a window in the dark scheme would fall back to GUI.Forms' dark theme.
         gf::PresentationOverrides light{};
-        light.colour_scheme = gf::ColourScheme::light;
+        light.colour_scheme.set(gf::ColourScheme::light);
         (*window).set_presentation_overrides(light);
         gf::ApplicationWindowOptions options;
         options.title = games::suite_name();

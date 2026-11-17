@@ -62,10 +62,12 @@ endif()
 if(GAMES_BUILD_APPLICATION AND GUIForms_DIR)
   # An installed GUI.Forms built with every feature (tools/build_sdk.py
   # --features all, as the local lockstep install is) replaces the source
-  # build: the text masks, the loop transport and the pinned FreeType and
-  # HarfBuzz the page compositor sets type with are its components.
+  # build: the text masks and the loop transport are its components. The page
+  # compositor sets type with STXlib's glyph engine (stxlib::algorithms), which
+  # the package finds beside itself (find_dependency(stxlib)); GUI.Forms has
+  # no FreeType or HarfBuzz since 2026-11-16.
   find_package(GUIForms 0.6 CONFIG REQUIRED
-    COMPONENTS Application Audio AudioLoopTransport TextMasks FreeType HarfBuzz)
+    COMPONENTS Application Audio AudioLoopTransport TextMasks)
 elseif(GAMES_BUILD_APPLICATION)
   set(GAMES_TOOLKIT_SOURCE_DIR "" CACHE PATH "Reviewed GUI.Forms source for development application builds")
   if(NOT EXISTS "${GAMES_TOOLKIT_SOURCE_DIR}/include/gui_forms/text_mask.hpp")
@@ -80,7 +82,6 @@ elseif(GAMES_BUILD_APPLICATION)
   set(GUI_FORMS_BUILD_TEXT_MASKS ON CACHE BOOL "" FORCE)
   # controls/command-capsule.control is compiled at build time (gui_forms_add_control).
   set(GUI_FORMS_BUILD_FORM_COMPILER ON CACHE BOOL "" FORCE)
-  set(GUI_FORMS_ENABLE_HARFBUZZ_TEXT ON CACHE BOOL "" FORCE)
   # Every host draws with GUI.Forms' CPU Skia (built from the pinned stx); the Win32
   # host requires it since stage SK3.
   set(GUI_FORMS_ENABLE_SKIA ON CACHE BOOL "" FORCE)
@@ -92,6 +93,14 @@ elseif(GAMES_BUILD_APPLICATION)
   # its own directory scope (and its module will not run twice), so it is set here too.
   set(GUI_FORMS_THEME_EMBED_SCRIPT "${GAMES_TOOLKIT_SOURCE_DIR}/cmake/GUIFormsThemeEmbed.cmake")
   set(GUIForms_FONT_DIR "${GAMES_TOOLKIT_SOURCE_DIR}/assets/fonts")
+  # The toolkit imports STXlib from its stx package in its own directory scope,
+  # where imported targets stay; the page compositor links stxlib::algorithms, so
+  # the same package is found again here, from the prefix the toolkit chose.
+  get_directory_property(GAMES_STX_PREFIX_DIR DIRECTORY "${GAMES_TOOLKIT_SOURCE_DIR}"
+    DEFINITION GUI_FORMS_STX_PREFIX_DIR)
+  if(NOT TARGET stxlib::algorithms)
+    find_package(stxlib CONFIG REQUIRED NO_DEFAULT_PATH PATHS "${GAMES_STX_PREFIX_DIR}")
+  endif()
 endif()
 add_library(game_paths src/runtime_paths.cpp src/game_data.cpp)
 target_include_directories(game_paths PUBLIC src)

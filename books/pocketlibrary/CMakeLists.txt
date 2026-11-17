@@ -1,6 +1,6 @@
 # The game's own build: the library without pixels and its tests, with nothing but a
 # C++20 compiler. The pages and the window are built by the repository's application
-# build (cmake/Application.cmake), which links the toolkit's HarfBuzz and FreeType.
+# build (cmake/Application.cmake), which sets type with STXlib's glyph engine.
 #
 #   cmake -S . -B build && cmake --build build -j 2 && ctest --test-dir build --output-on-failure
 cmake_minimum_required(VERSION 3.25)

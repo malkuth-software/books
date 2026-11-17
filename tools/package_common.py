@@ -16,7 +16,7 @@ TOOLKIT_REVISION = "e077f9d5a5117312e65e8c3b741c4edd24013d56"
 def sdk_notices(prefix):
     """GUI.Forms' licences in an installed SDK prefix (`cmake --install` of GUI.Forms, or
     its tools/build_sdk.py): share/licenses/GUIForms, every notice for what the SDK links
-    (its stx packages, HarfBuzz, FreeType, Skia, SheenBidi, Unicode, miniaudio, BFFT, the
+    (its stx packages and STXlib, Skia, Unicode, miniaudio, BFFT, the
     LLVM runtime on Linux) under the names its install gives them."""
     notices = prefix / "share/licenses/GUIForms"
     if not (notices / "LICENSE").is_file():
