@@ -2,19 +2,30 @@
 #include <array>
 #include "gui_forms/basic_controls.hpp"
 #include <memory>
+#include <string>
+#include <vector>
 namespace games {
 namespace gf = gui_forms;
 enum class ButtonSkin { slate, ivory, blue, mint };
 class GameButton : public gf::Button {
   public:
     GameButton(gf::StableId id, std::string text);
+    // The skin is the button's class beside game-button (themes/playsuite styles
+    // button.game-button.ivory and the rest).
     void set_skin(ButtonSkin skin);
+    [[nodiscard]] gf::AnatomyStateSet anatomy_states() const override;
     void on_paint(gf::Painter& painter, gf::Rect damage) override;
 
   private:
     ButtonSkin skin_ = ButtonSkin::ivory;
 };
-std::shared_ptr<const gf::Theme> games_theme(ButtonSkin skin = ButtonSkin::slate);
+// The class a GameButton takes for its skin ("ivory", ...).
+const char* skin_class(ButtonSkin skin);
+// The class a subtree takes for its skin ("skin-ivory", ...): themes/playsuite gives its
+// labels and editors the skin's text, fields and fonts (once games_theme's overrides).
+const char* skin_subtree_class(ButtonSkin skin);
+// Replaces `control`'s skin-* class with `skin`'s, keeping its other classes.
+void set_skin_class(gf::Control& control, ButtonSkin skin);
 gf::Color game_accent(int game);
 // smooth blends the partly covered pixels at span ends; tiled shapes pass false.
 void paint_polygon(gf::Painter& painter, const std::vector<gf::Point>& points, gf::Color color,

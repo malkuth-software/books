@@ -32,16 +32,16 @@ struct ShapeFeatures final {
     bool old_style_figures{false};
     // 'lnum': lining figures, for verse numerals.
     bool lining_figures{false};
-    // For the shaped-marks test only. 'mark' and 'mkmk' off: marks stay
-    // where the shaper leaves them before the font's anchors are applied.
+    // 'mark' and 'mkmk' off: marks stay where the shaper leaves them
+    // before the font's anchors are applied (for tracing a mark's place).
+    // Clusters are always one to a base with its marks: STXlib's shaper
+    // has no other cluster level.
     bool mark_positioning_off{false};
-    // For the same test: one cluster to the character instead of one to the
-    // base with its marks, so a glyph can be traced to its mark.
-    bool cluster_per_character{false};
 };
 
-// One glyph of a shaped run, in layout units at the run's em. Offsets follow
-// HarfBuzz: x to the right, y upward, both from the pen position.
+// One glyph of a shaped run, in layout units at the run's em. Offsets are
+// the shaper's (stxlib::glyphs::ShapedGlyph): x to the right, y upward,
+// both from the pen position.
 struct ShapedGlyph final {
     std::uint32_t glyph{0U};
     // Byte offset, in the shaped text, of the cluster this glyph belongs to.
@@ -95,11 +95,15 @@ struct GlyphCoverage final {
     std::vector<std::uint8_t> coverage{};
 };
 
-// Owns one FreeType library and, per loaded face, a FreeType face for
-// outlines and a HarfBuzz font for shaping. The font bytes are borrowed: the
-// caller keeps them alive and unchanged for the life of the FontSet.
+// The library's four faces, read by STXlib's glyph engine (stxlib::glyphs,
+// GUI.Forms' own text engine): per loaded face a Typeface (the font read
+// once), a Face (fitted outlines and masks) and a Shaper (OpenType layout
+// with language-tagged runs). No FreeType or HarfBuzz. The font bytes are
+// borrowed: the caller keeps them alive and unchanged for the life of the
+// FontSet.
 //
-// Not thread-safe: one FontSet belongs to one thread at a time.
+// Not thread-safe: one FontSet belongs to one thread at a time (a Face and
+// a Shaper are one thread's).
 class FontSet final {
   public:
     FontSet();
@@ -107,11 +111,13 @@ class FontSet final {
     FontSet(const FontSet&) = delete;
     FontSet& operator=(const FontSet&) = delete;
 
-    // False when the library could not start; no face can then be loaded.
+    // True: STXlib's engine needs no start-up. Kept so that callers which
+    // check before loading need not change.
     [[nodiscard]] bool ready() const noexcept;
 
     // Loads a face from TrueType or OpenType bytes. Returns false, loading
-    // nothing, when the bytes are not a font either library accepts.
+    // nothing, when the bytes are not a font STXlib's reader accepts or the
+    // face is already loaded.
     [[nodiscard]] bool load(FaceId face, std::span<const std::uint8_t> bytes);
     [[nodiscard]] bool loaded(FaceId face) const noexcept;
 
@@ -134,12 +140,15 @@ class FontSet final {
                ShapeFeatures features, ShapedRun& run) const;
 
     // Rasterizes one glyph with greyscale antialiasing and light hinting
-    // (F007 A, F008 B). `size_26_6` is the em in 1/64 device pixels.
-    // `shift_x_26_6` and `shift_y_26_6` move the outline by a fraction of a
-    // pixel before rasterizing (y upward). `embolden_26_6` thickens the
-    // outline by that much and is used only for synthesized small capitals.
-    // Returns false, leaving `destination` unchanged, when the glyph cannot
-    // be loaded; a glyph without ink gives an empty bitmap and true.
+    // (F007 A, F008 B: stxlib::glyphs::Fit::light, hinted along y only).
+    // `size_26_6` is the em in 1/64 device pixels. `shift_x_26_6` and
+    // `shift_y_26_6` move the outline by a fraction of a pixel before
+    // rasterizing (y upward). `embolden_26_6` thickens the strokes by that
+    // much (DrawStyle::thicken, clamped to 0..1024; the outline grows to the
+    // right and upward, its left and baseline kept) and is used only for
+    // synthesized small capitals. Returns false, leaving `destination`
+    // unchanged, when the glyph cannot be drawn; a glyph without ink gives
+    // an empty bitmap and true.
     [[nodiscard]] bool rasterize(FaceId face, std::uint32_t size_26_6, std::uint32_t glyph,
                                  std::int32_t shift_x_26_6, std::int32_t shift_y_26_6,
                                  std::int32_t embolden_26_6, GlyphCoverage& destination) const;

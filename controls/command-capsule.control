@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- command-capsule.control: Pocket Library's command capsule (PlaySuite's, shared), a
+     GUI.Forms composite (owner, 2026-11-15: the capsule is declared a composite, so its title may use an
+     app-loaded face). The pill is a themed part; the title is a stock label drawn by
+     GUI.Forms' text engine in Barlow Condensed (src/capsule_title_face.*). The commands, the
+     master switches and the opening animation are added and arranged by games::CommandCapsule
+     (src/capsule.*), which derives from the generated class. -->
+<control xmlns="urn:gui-forms:control:1" name="command-capsule" version="1.0"
+         base="user-control" family="panel">
+
+  <property name="title" kind="text" default="" category="Appearance" localizable="yes"
+            affects="layout paint semantics"/>
+
+  <!-- The pill: the control is CommandCapsule::shadow_margin (14) larger on every side, room
+       for the shadow. -->
+  <part name="pill" role="face" shape="pill" box="inset(region, 14)"/>
+
+  <children>
+    <label id="@title" text="bind(self.title, one_way)" classes="capsule-title"/>
+  </children>
+
+  <!-- The capsule is no stop; its buttons are. -->
+  <focus target="none"/>
+
+  <semantics role="toolbar" name="property(accessible-name)" children="exposed"/>
+
+  <look>
+    command-capsule::part(pill) {
+      background: linear-gradient(to bottom, #283048e4 0%, #101422ec 100%);
+      border: 1px solid #ffd27a78;
+      box-shadow: 0 2px 6px #0000005a;
+    }
+    command-capsule &gt; label.capsule-title { color: #ffe6ac; }
+  </look>
+</control>

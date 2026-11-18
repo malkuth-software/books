@@ -112,6 +112,63 @@ void paint_gloss(gf::Painter& p, gf::Rect r, double radius, GlossTone tone, Glos
         p.stroke_rounded_rect({r.x - 2, r.y - 2, r.width + 4, r.height + 4}, radius + 2,
                               rgb(255, 210, 122), 2);
 }
+const char* gloss_class(GlossTone tone) {
+    switch (tone) {
+    case GlossTone::gold:
+        return "gold";
+    case GlossTone::navy:
+        return "navy";
+    case GlossTone::smoke:
+        return "smoke";
+    case GlossTone::chrome:
+        break;
+    }
+    return "chrome";
+}
+gf::Rect outset(gf::Rect r, double amount) {
+    const gf::Rect result{r.x - amount, r.y - amount, r.width + 2 * amount, r.height + 2 * amount};
+    return result;
+}
+// The theme names a part by its key's part name (`::part(face)`); a part painted with
+// a role only matches `::role(face)` rules. The names are the stock parts' own.
+stxlib::Optional<gf::PartKey> skin_part_key(gf::PartRole role) {
+    switch (role) {
+    case gf::PartRole::face:
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"face", {}, {}});
+    case gf::PartRole::focus:
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"focus", {}, {}});
+    case gf::PartRole::indicator:
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"indicator", {}, {}});
+    case gf::PartRole::label:
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"label", {}, {}});
+    case gf::PartRole::track:
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"track", {}, {}});
+    case gf::PartRole::fill:
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"fill", {}, {}});
+    case gf::PartRole::thumb:
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"thumb", {}, {}});
+    case gf::PartRole::well:
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"well", {}, {}});
+    case gf::PartRole::glyph:
+        return stxlib::Optional<gf::PartKey>::of(gf::PartKey{"glyph", {}, {}});
+    default:
+        break;
+    }
+    return stxlib::Optional<gf::PartKey>::none();
+}
+void paint_skin_part(gf::Painter& p, const gf::Control& control, gf::PartRole role, gf::Rect bounds,
+                     gf::AnatomyStateSet states, std::optional<double> radius, gf::ControlVisualRole family) {
+    gf::PartPaint part{};
+    part.role = role;
+    part.key = skin_part_key(role);
+    part.bounds = bounds;
+    part.states = states;
+    part.family = family;
+    if (radius.has_value()) {
+        part.corner_radius.set(*radius);
+    }
+    gf::paint_part(p, control, part);
+}
 void paint_glyph(gf::Painter& p, gf::Rect r, Glyph glyph, gf::Color ink, bool crossed) {
     const double cx = r.x + r.width * .5, cy = r.y + r.height * .5, s = std::min(r.width, r.height);
     switch (glyph) {
@@ -176,13 +233,25 @@ void paint_glyph(gf::Painter& p, gf::Rect r, Glyph glyph, gf::Color ink, bool cr
 void paint_entry_emblem(gf::Painter& p,gf::Rect r,Entry entry) { game_descriptor(entry).cover(p,r); }
 SuiteButton::SuiteButton(gf::StableId id, std::string text, GlossTone tone)
     : Button(std::move(id), std::move(text)), tone_(tone) {
-    set_use_mnemonic(false);
-    set_font({gf::FontRole::content, 13, 700, false, .2});
+    use_mnemonic = false;
+    font = gf::FontSpec{gf::FontRole::content, 13, 700, false, .2};
+    restyle();
+}
+void SuiteButton::restyle() {
+    // A pill or a circle: paint_gloss judged it by the face (radius * 2 at least .8 of
+    // the face's shorter side); the shell's pills are radius 15 on faces under 37.5
+    // points tall, so the radius decides it here and the class needs no layout.
+    const bool rounded_end = radius_ == round || radius_ >= 12;
+    std::vector<std::string> names{"gloss", gloss_class(tone_)};
+    if (rounded_end)
+        names.push_back("rounded-end");
+    classes = std::move(names);
 }
 void SuiteButton::set_tone(GlossTone tone) {
     if (tone_ == tone)
         return;
     tone_ = tone;
+    restyle();
     invalidate(gf::Dirty::paint);
 }
 void SuiteButton::set_glyph(Glyph glyph, bool crossed) {
@@ -196,6 +265,7 @@ void SuiteButton::set_radius(double radius) {
     if (radius_ == radius)
         return;
     radius_ = radius;
+    restyle();
     invalidate(gf::Dirty::paint);
 }
 void SuiteButton::set_checked(bool checked) {
@@ -212,21 +282,29 @@ void SuiteButton::set_switch(SwitchLook look, std::string on_name, std::string o
     off_name_ = std::move(off_name);
     if (first)
         gf::on(selected_changed(), *this, &SuiteButton::switched);
-    switched(selected());
+    switched(selected.read());
 }
 void SuiteButton::switched(bool on) {
-    set_accessible_name(on ? on_name_ : off_name_);
+    accessible_name = on ? on_name_ : off_name_;
     invalidate(gf::Dirty::paint);
 }
 bool SuiteButton::crossed() const {
-    return crossed_ || (look_ == SwitchLook::crossed_when_off && !selected()) ||
-           (look_ == SwitchLook::crossed_when_on && selected());
+    return crossed_ || (look_ == SwitchLook::crossed_when_off && !selected.read()) ||
+           (look_ == SwitchLook::crossed_when_on && selected.read());
 }
 bool SuiteButton::checked() const {
-    return checked_ || (look_ == SwitchLook::lit_when_on && selected());
+    return checked_ || (look_ == SwitchLook::lit_when_on && selected.read());
+}
+gf::AnatomyStateSet SuiteButton::anatomy_states() const {
+    gf::AnatomyStateSet states = gf::Button::anatomy_states();
+    if (checked())
+        states.insert(gf::AnatomyState::checked);
+    else
+        states.erase(gf::AnatomyState::checked);
+    return states;
 }
 double SuiteButton::preferred_width() const {
-    const double chars = static_cast<double>(text().size());
+    const double chars = static_cast<double>(text.read().size());
     const double label = chars > 0 ? chars * 7.3 + 24 : 0;
     const double glyph = glyph_ != Glyph::none ? (label > 0 ? 22 : 34) : 0;
     return std::max(34.0, label + glyph);
@@ -242,27 +320,40 @@ void SuiteButton::on_paint(gf::Painter& p, gf::Rect) {
         r = {(b.width - side) * .5, 3, side, side};
         radius = side * .5;
     }
-    GlossTone tone = checked() ? GlossTone::gold : tone_;
-    // A switch's selected state is its command's; other buttons show selection as focus.
-    const bool selection_cue = look_ == SwitchLook::none && selected();
-    paint_gloss(p, r, radius, tone,
-                {hovered_visual(), pressed_visual(), enabled(), focus_cue_visible() || selection_cue});
-    gf::Color ink = gloss_ink(tone, enabled());
+    const gf::AnatomyStateSet states = anatomy_states();
+    // The face's rim was a 1-point stroke centred on r; the theme's border lies inside
+    // the part, so the part is r grown by half a point.
+    paint_skin_part(p, *this, gf::PartRole::face, outset(r, .5), states, radius + .5);
+    // The ring: a 2-point stroke 2 points out (r grown by 2), shown when hot, focused,
+    // or selected (a switch's selected state is its command's; other buttons show
+    // selection as focus). As a border inside the part: r grown by 3.
+    const bool selection_cue = look_ == SwitchLook::none && selected.read();
+    if (hovered_visual() || focus_cue_visible() || selection_cue)
+        paint_skin_part(p, *this, gf::PartRole::focus, outset(r, 3), states, radius + 3);
+    const GlossTone tone = checked() ? GlossTone::gold : tone_;
     double x = r.x + 10;
     const double shift = pressed_visual() ? 1 : 0;
     if (glyph_ != Glyph::none) {
         double s = std::min(20.0, r.height - 8);
-        double gx = text().empty() ? r.x + (r.width - s) * .5 : x;
-        paint_glyph(p, {gx + shift, r.y + (r.height - s) * .5 + shift, s, s}, glyph_, ink,
-                    crossed());
+        double gx = text.read().empty() ? r.x + (r.width - s) * .5 : x;
+        paint_glyph(p, {gx + shift, r.y + (r.height - s) * .5 + shift, s, s}, glyph_,
+                    gloss_ink(tone, enabled.read()), crossed());
         x = gx + s + 4;
     }
-    if (!text().empty()) {
-        gf::FontSpec f = font();
-        gf::Size m = p.measure_text_utf8(text(), f);
-        double tx = glyph_ == Glyph::none ? r.x + (r.width - m.width) * .5 : x;
-        p.draw_text_utf8({tx + shift, r.y + (r.height + f.size * .72) * .5 + shift}, text(), f,
-                         ink);
+    if (!text.read().empty()) {
+        const gf::FontSpec f = font.read();
+        const gf::Size m = p.measure_text_utf8(text.read(), f);
+        const double tx = glyph_ == Glyph::none ? r.x + (r.width - m.width) * .5 : x;
+        gf::PartPaint label{};
+        label.role = gf::PartRole::label;
+        label.key = skin_part_key(gf::PartRole::label);
+        label.states = states;
+        label.family = gf::ControlVisualRole::button;
+        label.text = text.read();
+        label.font = f;
+        label.measured_text.set(m);
+        const gf::Point baseline{tx + shift, r.y + (r.height + f.size * .72) * .5 + shift};
+        gf::paint_text_part_at(p, *this, label, baseline, m.width);
     }
 }
 } // namespace games

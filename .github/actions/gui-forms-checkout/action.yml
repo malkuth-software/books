@@ -1,0 +1,35 @@
+name: Check out the pinned GUI.Forms
+description: >-
+  Reads gui_forms.lock at the workspace root, the one place the GUI.Forms pin is
+  written, and checks that commit out, detached, at ./gui_forms (the layout of
+  GUI.Forms' own CI, so its published compiler cache can match). GUI.Forms
+  builds its stx package from its own stx.lock, so nothing else is fetched.
+outputs:
+  commit:
+    description: The locked commit.
+    value: ${{ steps.lock.outputs.commit }}
+runs:
+  using: composite
+  steps:
+    # Exactly one repository line and one commit line.
+    - id: lock
+      shell: bash
+      run: |
+        lock=gui_forms.lock
+        repositories=$(sed -n 's/^repository[[:space:]]*=[[:space:]]*"\([A-Za-z0-9_.-]*\/[A-Za-z0-9_.-]*\)".*$/\1/p' "$lock")
+        commits=$(sed -n 's/^commit[[:space:]]*=[[:space:]]*"\([0-9a-f]\{40\}\)".*$/\1/p' "$lock")
+        if [ -z "$repositories" ] || [ "$(printf '%s\n' "$repositories" | wc -l)" -ne 1 ]; then
+          echo "gui-forms-checkout: $lock needs exactly one line repository = \"owner/name\"" >&2
+          exit 1
+        fi
+        if [ -z "$commits" ] || [ "$(printf '%s\n' "$commits" | wc -l)" -ne 1 ]; then
+          echo "gui-forms-checkout: $lock needs exactly one line commit = \"<40 lowercase hexadecimal characters>\" (replace PIN_GUI_FORMS_MAIN_COMMIT with the merged GUI.Forms main commit)" >&2
+          exit 1
+        fi
+        echo "repository=$repositories" >> "$GITHUB_OUTPUT"
+        echo "commit=$commits" >> "$GITHUB_OUTPUT"
+    - uses: actions/checkout@v4
+      with:
+        repository: ${{ steps.lock.outputs.repository }}
+        ref: ${{ steps.lock.outputs.commit }}
+        path: gui_forms

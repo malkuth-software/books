@@ -91,7 +91,11 @@ def make_installer(bundle, output):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--build", type=Path, required=True)
-    parser.add_argument("--toolkit", type=Path, required=True)
+    # An installed GUI.Forms SDK prefix (cmake --install or tools/build_sdk.py): its notices in
+    # share/licenses/GUIForms and its fonts in share/GUIForms/fonts.
+    parser.add_argument("--toolkit", type=Path, required=True, help="installed GUI.Forms SDK prefix")
+    # The packaged source commit; this checkout's HEAD through git when omitted.
+    parser.add_argument("--source-revision", help="source commit recorded in package-manifest.json")
     parser.add_argument("--runtime-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("dist"))
     parser.add_argument("--installer", action="store_true")
@@ -137,7 +141,7 @@ def main():
     # LLVM's libc++ and libunwind (a CLANG64 build)
     if bundled & {"libc++.dll", "libunwind.dll"}:
         shutil.copytree(ROOT / "packaging/licenses/llvm", runtime_notices / "LLVM")
-    write_manifest(bundle, "Windows", "x64")
+    write_manifest(bundle, "Windows", "x64", args.source_revision)
     archive = output / ("pocketlibrary-" + project_version() + "-windows-x64.zip")
     # A source SDK unpacks with zero timestamps; ZIP cannot hold dates before
     # 1980, so those entries are clamped to 1980-01-01 instead of refused.

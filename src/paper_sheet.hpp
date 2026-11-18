@@ -12,7 +12,7 @@ class PaperSheet {
     [[nodiscard]] static gf::Color colour();
     // Makes the tile for `window` at its scale, or remakes it when the scale changed.
     void prepare(gf::Window& window);
-    void release(gf::Window& window) noexcept;
+    void release(gf::SurfaceRoot& window) noexcept;
     // Paints the paper over `bounds`.
     void paint(gf::Painter& painter, gf::Rect bounds) const;
 

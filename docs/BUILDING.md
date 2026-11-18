@@ -14,7 +14,7 @@ On macOS the compiler is Homebrew's, but the C++ runtime is not: Homebrew's libc
 
 GUI.Forms publishes a compiler cache from each tested main build as the prerelease `build-<revision>`, for macOS arm64, Linux x64, Linux arm64 and Windows x64; the macOS archive also carries the runtime. `tools/restore_toolkit_cache.py <platform>` downloads the one for the pin, checks it against the digest recorded there and the revision in its manifest, and unpacks it; on macOS it then verifies the runtime against the local compiler and SDK and rebuilds it from source if they differ. The workflow builds in `.build/native/app` with `CCACHE_BASEDIR` at the workspace, matching GUI.Forms' layout so cached toolkit objects match. A miss only compiles from source. Update the pin, the digests and the package revision in `tools/package_common.py` together.
 
-The source integration uses public GUI.Forms APIs for native windows, input, presentation, text masks and audio. An installed GUI.Forms can replace the source when it was built with every feature (`tools/build_sdk.py --features all`, GUI.Forms ec23f9d8 or later, as the local lockstep install is): configure with `-DGUIForms_DIR=<prefix>/lib/cmake/GUIForms` instead of `GAMES_TOOLKIT_SOURCE_DIR`. It then supplies the text masks, the loop transport, and the pinned FreeType and HarfBuzz that the page compositor uses. On Windows, put `<prefix>/bin` on `PATH` for the tests. CI still builds from source. The Pocket Library does not install or export an SDK. Apple framework adaptation is confined to GUI.Forms; the application and its adapters compile as C++.
+The source integration uses public GUI.Forms APIs for native windows, input, presentation, text masks and audio. An installed GUI.Forms can replace the source when it was built with every feature (`tools/build_sdk.py --features all`, GUI.Forms ec23f9d8 or later, as the local lockstep install is): configure with `-DGUIForms_DIR=<prefix>/lib/cmake/GUIForms` instead of `GAMES_TOOLKIT_SOURCE_DIR`. It then supplies the text masks and the loop transport, and its package finds STXlib, whose glyph engine (`stxlib::algorithms`) the page compositor sets type with; GUI.Forms has had no FreeType or HarfBuzz since 2026-11-16. On Windows, put `<prefix>/bin` on `PATH` for the tests. CI still builds from source. The Pocket Library does not install or export an SDK. Apple framework adaptation is confined to GUI.Forms; the application and its adapters compile as C++.
 
 The quickest check that a workspace builds is `python3 scripts/smoke-build.py`, the template_harness bootstrap's smoke command. It configures `.build/native-<platform>/books-smoke` with `GAMES_BUILD_APPLICATION=OFF`: no GUI.Forms, no runtime assets and no library data. It builds the library core with the harness toolchain file and runs the dogfood, paper_engine and pocketlibrary_library tests.
 
@@ -58,10 +58,12 @@ On Linux, also install GN, Ninja, X11/Xcursor and ATK development packages. macO
 Packaging scripts stage into a new output directory and refuse to overwrite an existing application folder:
 
 ```sh
-python tools/package_windows.py --build build/app --toolkit gui_forms --runtime-dir <mingw64-bin> --installer
-python3 tools/package_macos.py --build build/app --toolkit gui_forms --runtime <macos-14-llvm-runtime>
-python3 tools/package_linux.py --build build/app --toolkit gui_forms
+python tools/package_windows.py --build build/app --toolkit <gui-forms-sdk-prefix> --runtime-dir <mingw64-bin> --installer
+python3 tools/package_macos.py --build build/app --toolkit <gui-forms-sdk-prefix> --runtime <macos-14-llvm-runtime>
+python3 tools/package_linux.py --build build/app --toolkit <gui-forms-sdk-prefix>
 ```
+
+`--toolkit` is an installed GUI.Forms SDK prefix (the lockstep prefix, or `cmake --install <build>/toolkit --prefix <dir>` after a source build): the scripts read GUI.Forms' notices from `share/licenses/GUIForms` and its fonts from `share/GUIForms/fonts`. `--source-revision <commit>` records the packaged commit in package-manifest.json; without it the scripts ask git for this checkout's HEAD.
 
 Windows installer creation requires NSIS. Linux packaging requires patchelf and Debian packaging tools; its DEB records the actual shared-library dependencies. The Windows and macOS scripts copy and validate the native dependency closure. All packages include the library's parts, toolkit fonts, the library's fonts, dependency notices and a resource manifest.
 

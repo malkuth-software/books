@@ -28,6 +28,7 @@
 #include <system_error>
 #include <thread>
 #include <vector>
+#include "stable_ids.hpp"
 
 namespace kit {
 namespace gf = gui_forms;
@@ -120,7 +121,22 @@ inline gf::LiveSurfaceFrame contract_next_frame(gf::Window& window, std::shared_
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
-    throw std::runtime_error(std::string("no frame was published in time: ") + waiting_for);
+    // What the surface and the scheduler say at the deadline, so a failure tells a game
+    // that never published (no publishes, nothing scheduled) from one whose publishes
+    // were refused (dropped acquires: every write slot still held) or carried.
+    std::string state = " (no surface was presented)";
+    if (surface) {
+        const gf::LiveSurfaceSnapshot snapshot = (*surface).snapshot();
+        state = " (surface: generation " + std::to_string(snapshot.published_generation) + " after " +
+                std::to_string(after) + ", publishes " + std::to_string(snapshot.publishes) +
+                ", dropped acquires " + std::to_string(snapshot.dropped_acquires) + ", reads " +
+                std::to_string(snapshot.read_acquires) + ", write active " +
+                (snapshot.write_active ? "yes" : "no") + ", carries previous " +
+                (snapshot.carries_previous_frame ? "yes" : "no") + ")";
+    }
+    const stxlib::Optional<gf::FrameTime> wake = window.next_wake();
+    const std::string scheduled = wake.present() ? " (a wake is scheduled)" : " (nothing is scheduled)";
+    throw std::runtime_error(std::string("no frame was published in time: ") + waiting_for + state + scheduled);
 }
 
 inline std::uint64_t contract_generation(const std::shared_ptr<gf::LiveSurface>& surface) {
@@ -132,11 +148,12 @@ inline std::uint64_t contract_generation(const std::shared_ptr<gf::LiveSurface>&
 // hold one slow wake for a timed event (a character's remark after a long pause); it
 // may not keep ticking.
 inline bool contract_quiet(const gf::Window& window) {
-    const std::optional<gf::FrameTime> wake = window.next_wake();
-    if (!wake) {
+    const stxlib::Optional<gf::FrameTime> wake = window.next_wake();
+    const gf::FrameTime* const when = wake.value();
+    if (when == nullptr) {
         return true;
     }
-    const bool far = *wake - gf::FrameClock::now() >= std::chrono::milliseconds(900);
+    const bool far = *when - gf::FrameClock::now() >= std::chrono::milliseconds(900);
     return far;
 }
 
@@ -168,7 +185,7 @@ template <class View, class ViewOptions>
 int run_view_contract(const char* name, const ViewOptions& view_options, const ContractOptions& options) {
     try {
         contract_isolate_saves(name);
-        std::shared_ptr<View> view = gf::make_control<View>(gf::StableId(name), view_options);
+        std::shared_ptr<View> view = gf::make_control<View>(games::stable_id(name), view_options);
         (*view).set_cabinet(true, false, false, true);
         gf::Window window(view, {1180, 800});
         window.set_active(true);
@@ -261,14 +278,14 @@ int run_view_contract(const char* name, const ViewOptions& view_options, const C
 
         // 7. Hidden behind the shelf: no timer callbacks, no frames. Then it resumes.
         (*view).set_cabinet(false, false, false, true);
-        (*view).set_visible(false);
+        (*view).visible = false;
         const std::uint64_t hidden = contract_generation(surface);
         const std::uint64_t callbacks = window.metrics_snapshot().callbacks_emitted;
         static_cast<void>(window.poll_frame_schedule(gf::FrameClock::now() + std::chrono::seconds(2)));
         contract_require(window.metrics_snapshot().callbacks_emitted == callbacks,
                          "a hidden game has no timer callbacks");
         contract_require(contract_generation(surface) == hidden, "a hidden game publishes nothing");
-        (*view).set_visible(true);
+        (*view).visible = true;
         (*view).set_cabinet(true, false, false, true);
         gf::LiveSurfaceFrame resumed = contract_next_frame(window, surface, hidden, "a frame after returning from the shelf");
         contract_require(resumed.width() > 0, "the game resumes with its surface");

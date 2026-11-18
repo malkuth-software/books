@@ -45,7 +45,7 @@ void PaperSheet::prepare(gf::Window& window) {
     scale_ = scale;
     pixels_ = side;
 }
-void PaperSheet::release(gf::Window& window) noexcept {
+void PaperSheet::release(gf::SurfaceRoot& window) noexcept {
     if (image_.value)
         static_cast<void>(window.remove_image(image_));
     image_ = {};

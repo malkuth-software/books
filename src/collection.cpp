@@ -1,24 +1,22 @@
 #include "collection.hpp"
 #include "audio.hpp"
 #include "pcm_player.hpp"
-#include "gui_forms/controls/panel/text_box/text_box.hpp"
+#include "gui_forms/controls/text_box.hpp"
 #include "gui_forms/window.hpp"
 namespace games {
-namespace {
-void repaint_tree(gf::Control& control) {
-    control.invalidate(gf::Dirty::paint);
-    for (const std::shared_ptr<gf::Control>& child : control.children())
-        repaint_tree(*child);
-}
-} // namespace
 Collection::Collection(gf::StableId id, bool dev) : Control(std::move(id)) {
     modules_.dev = dev;
-    set_theme_override(games_theme(ButtonSkin::ivory));
+    set_skin_class(*this, ButtonSkin::ivory);
 }
-Collection::~Collection() = default;
+// The capsule title's family is released here, in the shell's teardown before the
+// application shuts down (no static destructor holds it).
+Collection::~Collection() {
+    title_family_.release();
+}
 void Collection::initialize_control_tree() {
-    sprites_.request_update = std::bind_front(&Collection::wake, this);
-    capsule_ = gf::make_control<CommandCapsule>(gf::StableId("collection.capsule"), sprites_);
+    // The capsule title's family, loaded before the capsule that borrows it.
+    static_cast<void>(title_family_.load());
+    capsule_ = gf::make_control<CommandCapsule>(gf::StableId("collection.capsule"), title_family_);
     add_child(capsule_);
     (*capsule_).back = std::bind_front(&Collection::back, this);
     (*capsule_).command = std::bind_front(&Collection::run_command, this);
@@ -28,18 +26,18 @@ void Collection::initialize_control_tree() {
     gf::on(model_.reduced.invoked(), *this, &Collection::toggle, 2);
     gf::on(model_.settings.invoked(), *this, &Collection::toggle, 3);
     help_link_ = gf::make_control<HelpGlyph>(gf::StableId("collection.help"), "?");
-    (*help_link_).set_font({gf::FontRole::content, 32, 700, false});
-    (*help_link_).set_ink(gf::Color::rgba(240, 192, 84));
-    (*help_link_).set_accessible_name("Help (H)");
+    (*help_link_).font = gf::FontSpec{gf::FontRole::content, 32, 700, false};
+    (*help_link_).set_variant(HelpGlyphVariant::help_link);
+    (*help_link_).accessible_name = "Help (H)";
     (*help_link_).set_paint_plane(gf::PaintPlane::overlay);
     gf::on((*help_link_).clicked(), *this, &Collection::clicked_help);
     help_ = gf::make_control<HelpBook>(gf::StableId("collection.help-book"));
     (*help_).close = std::bind_front(&Collection::close_help, this);
-    (*help_).set_visible(false);
+    (*help_).visible = false;
     settings_ = gf::make_control<SettingsSheet>(gf::StableId("collection.settings"));
     (*settings_).bind_masters(model_);
     (*settings_).close = std::bind_front(&Collection::close_settings, this);
-    (*settings_).set_visible(false);
+    (*settings_).visible = false;
     add_child(help_link_);
     add_child(help_);
     add_child(settings_);
@@ -62,7 +60,13 @@ void Collection::ensure_view(Entry entry) {
     // Card modules intentionally share a control and cabinet. Attach it only once.
     if (std::find(children().begin(), children().end(), created) == children().end()) {
         add_child(created);
-        static_cast<void>(set_child_index((*created).runtime_id(), children().size()-1));
+        // Bottommost: the first of children(), below the capsule, the help link, help and
+        // settings, so the window's hit test finds those overlays before the full-window game
+        // (the paint plane orders only painting). The pre-0.6 call was set_child_index(id,
+        // size - 1), the bottom in Windows Forms' order; the 0.6 port had put it on top, and
+        // real clicks on the capsule went to the game.
+        const std::size_t bottom = children().size() - 1;
+        static_cast<void>(set_child_index_from_top((*created).runtime_id(), bottom));
     }
 }
 void Collection::on_attached_to_window() {
@@ -71,11 +75,10 @@ void Collection::on_attached_to_window() {
     last_tick_ = std::chrono::steady_clock::now();
     (*timer_).start();
 }
-void Collection::on_detaching_from_window(gf::Window& window) noexcept {
+void Collection::on_detaching_from_window(gf::SurfaceRoot& window) noexcept {
     if (timer_)
         (*timer_).stop();
     timer_.reset();
-    sprites_.release(window);
 }
 bool Collection::hosted(Entry entry) const { return game_descriptor(entry).hosted; }
 bool Collection::railed(Entry entry) const { return game_descriptor(entry).rail; }
@@ -101,14 +104,6 @@ void Collection::tick() {
     audio_poll();
     if (gf::Window* window = attached_window())
         set_polygon_scale((*window).scale());
-    if (gf::Window* window = attached_window(); window && sprites_.update(*window)) {
-        // New lettering: every control that may paint it, however deep, or the ones not
-        // hovered keep the stand-in face.
-        repaint_tree(*capsule_);
-        (*capsule_).set_maximum_width(capsule_width_limit_);
-        (*capsule_).invalidate(gf::Dirty::paint);
-        invalidate(gf::Dirty::layout);
-    }
     const gf::Rect area{0, 0, client_rectangle().width - 48, railed(active_) ? current_rail_height_ : 60.0};
     gf::Rect r = (*capsule_).placement(area);
     // The placement includes the shadow margin, which doubles as a forgiving hover border.
@@ -126,7 +121,7 @@ void Collection::tick() {
     // and audio preparation need 60 Hz. Then stop: every wake of the window costs a
     // repaint wherever the capsule floats over a live game, so a settled game must
     // not be woken at all. The next pointer or key wakes it again.
-    const bool busy = (*capsule_).unsettled(inside) || sprites_.waiting() || audio_pending();
+    const bool busy = (*capsule_).unsettled(inside) || audio_pending();
     quiet_ = busy ? 0 : quiet_ + dt;
     if (timer_) {
         if (quiet_ > 3.0) {
@@ -268,9 +263,9 @@ bool Collection::overlay(const std::shared_ptr<gf::Control>& child) const {
 void Collection::visibility() {
     for (const std::shared_ptr<gf::Control>& child : children())
         if (!overlay(child))
-            (*child).set_visible(false);
-    (*view(active_)).set_visible(true);
-    (*capsule_).set_visible(true);
+            (*child).visible = false;
+    (*view(active_)).visible = true;
+    (*capsule_).visible = true;
     preferences();
     invalidate(gf::Dirty::layout | gf::Dirty::paint);
 }
@@ -291,7 +286,7 @@ void Collection::arrange(gf::Rect b) {
     // until they move.
     const bool on_rail = railed(active_);
     for (const std::shared_ptr<gf::Control>& child : children())
-        if (!overlay(child) && (*child).visible())
+        if (!overlay(child) && (*child).visible.read())
             set_child_layout(child, on_rail ? below : full);
     gf::Rect capsule = (*capsule_).placement({0, 0, b.width - 48, on_rail ? current_rail_height_ : 60.0});
     if (on_rail)
@@ -374,7 +369,7 @@ void Collection::show_settings() {
     close_help();
     const bool was_open = settings_open();
     (*settings_).show_for(std::string(entry_info(active_).title), source(active_));
-    (*settings_).set_visible(true);
+    (*settings_).visible = true;
     model_.settings.set_checked(true);
     if (!was_open && attached_window()) {
         settings_focus_ = (*attached_window()).begin_focus_scope(settings_);
@@ -388,7 +383,7 @@ void Collection::close_settings() {
     if (attached_window() && settings_focus_)
         static_cast<void>((*attached_window()).end_focus_scope(settings_focus_));
     settings_focus_ = {};
-    (*settings_).set_visible(false);
+    (*settings_).visible = false;
     model_.settings.set_checked(false);
     refresh_commands();
     invalidate(gf::Dirty::paint);
@@ -400,7 +395,7 @@ void Collection::show_help(std::string_view topic) {
     close_settings();
     const bool was_open = help_open();
     (*help_).select(static_cast<int>(active_), topic);
-    (*help_).set_visible(true);
+    (*help_).visible = true;
     if (!was_open && attached_window())
         help_focus_ = (*attached_window()).begin_focus_scope(help_);
     invalidate(gf::Dirty::layout | gf::Dirty::paint);
@@ -411,7 +406,7 @@ void Collection::close_help() {
     if (attached_window() && help_focus_)
         static_cast<void>((*attached_window()).end_focus_scope(help_focus_));
     help_focus_ = {};
-    (*help_).set_visible(false);
+    (*help_).visible = false;
     invalidate(gf::Dirty::paint);
 }
 } // namespace games

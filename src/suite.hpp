@@ -1,8 +1,10 @@
 #pragma once
 #include "gui_forms/basic_controls.hpp"
+#include "gui_forms/theme/part_painting/part_painting.hpp"
 #include "game_entries.hpp"
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -83,8 +85,29 @@ enum class GlossTone { chrome, gold, navy, smoke };
 struct GlossState {
     bool hot = false, down = false, enabled = true, focus = false;
 };
+// The gloss drawn straight onto a canvas (a puzzle's banner). Controls in the gloss
+// (SuiteButton, the settings controls) paint their parts through the theme instead:
+// themes/playsuite gives the same colours to button.gloss and its tone classes.
 void paint_gloss(gf::Painter& p, gf::Rect r, double radius, GlossTone tone, GlossState state);
+// The gloss's ink, for the marks controls still draw in code (paint_glyph, the check
+// tick: the theme has no app-defined marks yet). Matches the sheet's gloss-*-ink roles.
 gf::Color gloss_ink(GlossTone tone, bool enabled = true);
+// The class themes/playsuite gives each tone (button.gloss.chrome, ...).
+const char* gloss_class(GlossTone tone);
+
+// `r` grown by `amount` on every side.
+gf::Rect outset(gf::Rect r, double amount);
+// The part key a skinned part is painted under, so `::part(<name>)` rules reach it (a part
+// painted with a role only matches `::role(...)` rules, and themes/playsuite writes `::part`).
+[[nodiscard]] stxlib::Optional<gf::PartKey> skin_part_key(gf::PartRole role);
+// Paints part `role` of `control` over `bounds` (the control's coordinates) through its
+// theme, in `states`, with corner radius `radius` when given; `family` is the recipe
+// the theme falls back to where no rule styles the part. A part the theme frames draws
+// its border inside `bounds`, so a caller that stroked a path centred on a rect passes
+// that rect grown by half the stroke.
+void paint_skin_part(gf::Painter& p, const gf::Control& control, gf::PartRole role, gf::Rect bounds,
+                     gf::AnatomyStateSet states, std::optional<double> radius,
+                     gf::ControlVisualRole family = gf::ControlVisualRole::button);
 
 enum class Glyph { none, back, play, music, sound, motion, more, settings };
 void paint_glyph(gf::Painter& p, gf::Rect r, Glyph glyph, gf::Color ink, bool crossed = false);
@@ -108,9 +131,15 @@ class SuiteButton : public gf::Button {
     [[nodiscard]] bool crossed() const;
     [[nodiscard]] bool checked() const;
     [[nodiscard]] double preferred_width() const;
+    // The button's states, with checked while it is lit (checked(): the theme's
+    // button.gloss:checked is gold whatever the tone).
+    [[nodiscard]] gf::AnatomyStateSet anatomy_states() const override;
     void on_paint(gf::Painter& painter, gf::Rect damage) override;
 
   private:
+    // Sets the classes the theme styles the button by: gloss, the tone, and
+    // rounded-end for a pill or a circle (no shine line).
+    void restyle();
     GlossTone tone_;
     Glyph glyph_ = Glyph::none;
     bool crossed_ = false, checked_ = false;

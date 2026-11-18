@@ -1,7 +1,7 @@
 #pragma once
-#include "gui_forms/controls/button_base/check_box/check_box.hpp"
-#include "gui_forms/controls/range_control/track_bar/track_bar.hpp"
-#include "gui_forms/controls/scrollable_control/scrollable_control.hpp"
+#include "gui_forms/controls/check_box.hpp"
+#include "gui_forms/controls/track_bar.hpp"
+#include "gui_forms/controls/scrollable_control.hpp"
 #include "help_book.hpp"
 #include "suite.hpp"
 #include "suite_model.hpp"
@@ -113,6 +113,6 @@ class SettingsSheet final : public gf::Control {
     PaperSheet sheet_;
     void clicked_close();
     void on_attached_to_window() override;
-    void on_detaching_from_window(gf::Window& window) noexcept override;
+    void on_detaching_from_window(gf::SurfaceRoot& window) noexcept override;
 };
 } // namespace games

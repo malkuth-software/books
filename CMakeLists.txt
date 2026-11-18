@@ -8,13 +8,16 @@ if(NOT GAMES_RELEASE_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
   message(FATAL_ERROR "GAMES_RELEASE_VERSION must be a numeric major.minor.patch")
 endif()
 project(PocketLibrary VERSION ${GAMES_RELEASE_VERSION} LANGUAGES C CXX)
-# Windows finds a program's DLLs beside it: build every program and DLL, GUI.Forms'
-# Application and Threading included, into one folder.
+# Every program in one folder on Windows (GUI.Forms is one module and ships no DLL; any
+# other DLL a build makes is found beside the programs).
 if(WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 endif()
 set(GAMES_RUNTIME_ASSET_DIR "" CACHE PATH "Complete verified portable runtime assets")
 option(GAMES_BUILD_APPLICATION "Build the complete graphical library and UI tests" ON)
+# The capsule title loads Barlow Condensed through GUI.Forms' app-font API (claude/app-fonts,
+# 2558e326c); turn it off only to build against a GUI.Forms without that API.
+option(GAMES_GUI_FORMS_APP_FONTS "Load the capsule title's face through GUI.Forms' app-font API" ON)
 enable_testing()
 add_executable(dogfood_tests tests/dogfood_tests.cpp src/dogfood.cpp)
 target_include_directories(dogfood_tests PRIVATE src)
@@ -25,13 +28,47 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
+# GUI.Forms on Linux builds against LLVM's libc++ 22 and libc++abi (cp33; owner, 2026-11-15),
+# and an application that links it must use the same C++ library: gui_forms/cmake/llvm22.cmake
+# passes -stdlib=libc++. A tree that would compile against libstdc++ is refused here, as
+# GUI.Forms' own configure refuses it, rather than at the first link or library difference.
+# A shipped program also has no native library dependency (owner, 2026-11-15): the toolchain
+# links libc++, libc++abi and libunwind statically (-nostdlib++ and the archives last on every
+# C++ link line, GUI.Forms 39d2ea6b0), and a tree whose link line would take them shared is
+# refused too. tools/package_linux.py checks the result with readelf and ldd.
+if(GAMES_BUILD_APPLICATION AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  include(CheckCXXSourceCompiles)
+  check_cxx_source_compiles([=[
+#include <version>
+#if !defined(_LIBCPP_VERSION) || _LIBCPP_VERSION < 220000 || _LIBCPP_VERSION >= 230000
+#error "not libc++ 22"
+#endif
+int main() { return 0; }
+]=] GAMES_LINUX_LIBCXX_22)
+  # GUI.Forms' toolchain file reports a static libc++, libc++abi and libunwind
+  # (the harness's runtime, GUI_FORMS_LLVM_RUNTIME) as GUI_FORMS_STATIC_CXX_RUNTIME.
+  if(NOT GUI_FORMS_STATIC_CXX_RUNTIME)
+    message(FATAL_ERROR "Pocket Library on Linux links libc++, libc++abi and libunwind statically: configure "
+                        "with gui_forms/cmake/llvm22.cmake and GUI_FORMS_LLVM_RUNTIME naming the "
+                        "harness's static Linux runtime (template_harness/harness/build_linux_runtimes.py)")
+  endif()
+  if(NOT GAMES_LINUX_LIBCXX_22)
+    # Not cached as a failure: the next configure checks again.
+    unset(GAMES_LINUX_LIBCXX_22 CACHE)
+    message(FATAL_ERROR "Pocket Library on Linux builds against libc++ 22 and libc++abi, as GUI.Forms does: "
+                        "configure with gui_forms/cmake/llvm22.cmake and install libc++-22-dev and "
+                        "libc++abi-22-dev")
+  endif()
+endif()
 if(GAMES_BUILD_APPLICATION AND GUIForms_DIR)
   # An installed GUI.Forms built with every feature (tools/build_sdk.py
   # --features all, as the local lockstep install is) replaces the source
-  # build: the text masks, the loop transport and the pinned FreeType and
-  # HarfBuzz the page compositor sets type with are its components.
-  find_package(GUIForms CONFIG REQUIRED
-    COMPONENTS Application Audio AudioLoopTransport TextMasks FreeType HarfBuzz)
+  # build: the text masks and the loop transport are its components. The page
+  # compositor sets type with STXlib's glyph engine (stxlib::algorithms), which
+  # the package finds beside itself (find_dependency(stxlib)); GUI.Forms has
+  # no FreeType or HarfBuzz since 2026-11-16.
+  find_package(GUIForms 0.6 CONFIG REQUIRED
+    COMPONENTS Application Audio AudioLoopTransport TextMasks)
 elseif(GAMES_BUILD_APPLICATION)
   set(GAMES_TOOLKIT_SOURCE_DIR "" CACHE PATH "Reviewed GUI.Forms source for development application builds")
   if(NOT EXISTS "${GAMES_TOOLKIT_SOURCE_DIR}/include/gui_forms/text_mask.hpp")
@@ -44,14 +81,27 @@ elseif(GAMES_BUILD_APPLICATION)
   # GUI.Forms' own Vorbis decoder; forced so an older build folder cannot keep stb.
   set(GUI_FORMS_AUDIO_VORBIS_BACKEND stx CACHE STRING "" FORCE)
   set(GUI_FORMS_BUILD_TEXT_MASKS ON CACHE BOOL "" FORCE)
-  set(GUI_FORMS_ENABLE_HARFBUZZ_TEXT ON CACHE BOOL "" FORCE)
-  if(WIN32)
-    set(GUI_FORMS_ENABLE_SKIA OFF CACHE BOOL "" FORCE)
-  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # controls/command-capsule.control is compiled at build time (gui_forms_add_control).
+  set(GUI_FORMS_BUILD_FORM_COMPILER ON CACHE BOOL "" FORCE)
+  # Every host draws with GUI.Forms' CPU Skia (built from the pinned stx); the Win32
+  # host requires it since stage SK3.
+  set(GUI_FORMS_ENABLE_SKIA ON CACHE BOOL "" FORCE)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(GUI_FORMS_ENABLE_LINUX_HOST ON CACHE BOOL "" FORCE)
   endif()
   add_subdirectory("${GAMES_TOOLKIT_SOURCE_DIR}" toolkit EXCLUDE_FROM_ALL)
+  # gui_forms_add_theme reads GUI_FORMS_THEME_EMBED_SCRIPT, which the toolkit sets only in
+  # its own directory scope (and its module will not run twice), so it is set here too.
+  set(GUI_FORMS_THEME_EMBED_SCRIPT "${GAMES_TOOLKIT_SOURCE_DIR}/cmake/GUIFormsThemeEmbed.cmake")
   set(GUIForms_FONT_DIR "${GAMES_TOOLKIT_SOURCE_DIR}/assets/fonts")
+  # The toolkit imports STXlib from its stx package in its own directory scope,
+  # where imported targets stay; the page compositor links stxlib::algorithms, so
+  # the same package is found again here, from the prefix the toolkit chose.
+  get_directory_property(GAMES_STX_PREFIX_DIR DIRECTORY "${GAMES_TOOLKIT_SOURCE_DIR}"
+    DEFINITION GUI_FORMS_STX_PREFIX_DIR)
+  if(NOT TARGET stxlib::algorithms)
+    find_package(stxlib CONFIG REQUIRED NO_DEFAULT_PATH PATHS "${GAMES_STX_PREFIX_DIR}")
+  endif()
 endif()
 add_library(game_paths src/runtime_paths.cpp src/game_data.cpp)
 target_include_directories(game_paths PUBLIC src)

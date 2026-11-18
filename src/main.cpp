@@ -2,10 +2,14 @@
 #include "dogfood.hpp"
 #include "gui_forms/application.hpp"
 #include "gui_forms/paint_framebuffer.hpp"
+#include "playsuite_theme.hpp"  // generated from themes/playsuite (PlaySuite's look)
+#include <clocale>
 #include <fstream>
 #include "runtime_paths.hpp"
 #include <iostream>
+#include <cstddef>
 #include <map>
+#include <vector>
 #include <stdexcept>
 
 namespace gf = gui_forms;
@@ -39,7 +43,7 @@ static std::uint32_t key_code(const std::string& name) {
     return (*found).second;
 }
 static void invalidate_capture(gf::Control& control) {
-    if(!control.visible()) return;
+    if(!control.visible.read()) return;
     control.invalidate(gf::Dirty::paint);
     for(const std::shared_ptr<gf::Control>& child:control.children()) invalidate_capture(*child);
 }
@@ -59,7 +63,7 @@ static void capture_frame(gf::Window& window,const std::filesystem::path& path) 
     std::ofstream output(path,std::ios::binary|std::ios::trunc);
     output<<"P6\n"<<(*frame).width()<<' '<<(*frame).height()<<"\n255\n";
     const std::span<std::byte> pixels=(*frame).pixels();
-    const bool bgra=(*frame).channel_order()==gf::FramebufferChannelOrder::bgra;
+    const bool bgra=true; // every framebuffer is BGRA8 since GUI.Forms 0.5
     for(std::uint32_t y=0;y<(*frame).height();++y) {
         const unsigned char* row=reinterpret_cast<const unsigned char*>(pixels.data()+y*(*frame).row_bytes());
         for(std::uint32_t x=0;x<(*frame).width();++x) {
@@ -185,7 +189,50 @@ struct Ready final {
         }
     }
 };
+// Prints the theme compile's findings: the refusal's errors, or the warnings of a
+// theme that was taken. W201 (a literal colour forced high contrast cannot remap) is
+// expected of every PlaySuite colour, which has no GUI.Forms palette role, so those are
+// counted on one line, not listed.
+static void report_theme_findings(const std::vector<gf::ThemeCompileDiagnostic>& findings) {
+    std::size_t unremappable = 0;
+    for (const gf::ThemeCompileDiagnostic& finding : findings) {
+        if (finding.code == "W201") {
+            ++unremappable;
+            continue;
+        }
+        std::cerr << "PlaySuite theme: " << finding.code << ' ' << finding.name << " at " << finding.file << ':'
+                  << finding.line << ':' << finding.column;
+        if (!finding.rule.empty()) std::cerr << " in " << finding.rule;
+        if (!finding.property.empty()) std::cerr << " (" << finding.property << ')';
+        if (!finding.detail.empty()) std::cerr << ": " << finding.detail;
+        std::cerr << '\n';
+    }
+    if (unremappable > 0)
+        std::cerr << "PlaySuite theme: " << unremappable << " literal colours forced high contrast cannot remap (W201)\n";
+}
+// The application: PlaySuite's theme package (themes/playsuite, shared with PlaySuite)
+// over Windows Professional, compiled once. A refused package is reported and the
+// library runs in the base theme rather than not at all.
+static gf::ApplicationCreateResult create_application() {
+    gf::ApplicationConfig config{};
+    config.theme.base = gf::ThemeBase::windows_professional;
+    config.theme.packages.push_back(games::playsuite_theme());
+    gf::ApplicationCreateResult created = gf::Application::create(std::move(config));
+    report_theme_findings(created.findings);
+    if (created || created.error != gf::ApplicationCreateError::theme_refused) return created;
+    std::cerr << "PlaySuite theme refused; running in the base theme\n";
+    gf::ApplicationConfig plain{};
+    plain.theme.base = gf::ThemeBase::windows_professional;
+    gf::ApplicationCreateResult fallback = gf::Application::create(std::move(plain));
+    return fallback;
+}
 int main(int argc,char** argv) {
+#if defined(__linux__)
+    // The program, not GUI.Forms, chooses its locale (cp33: the host no longer calls setlocale):
+    // the environment's character type, so X input methods (ibus, fcitx) and compose sequences
+    // keep working in the search field.
+    std::setlocale(LC_CTYPE, "");
+#endif
     try {
         const games::dogfood::Options arguments = games::dogfood::parse_options(argc,argv);
         if (arguments.help) { std::cout << games::dogfood::usage(); return 0; }
@@ -204,6 +251,11 @@ int main(int argc,char** argv) {
         games::dogfood::DevelopmentState saves(arguments.dev || arguments.smoke || arguments.profile);
         games::initialize_assets(argv[0]);
         if (!(arguments.dev || arguments.smoke || arguments.profile)) games::carry_over_playsuite_places();
+        // Application-first (GUI.Forms 0.5): the application owns the resources and the
+        // theme every window shares, and runs the windows. The look is PlaySuite's.
+        gf::ApplicationCreateResult created = create_application();
+        if (!created) throw std::runtime_error("The application could not be made");
+        gf::Application& application = *created.application;
         std::shared_ptr<RunState> state = std::make_shared<RunState>();
         (*state).options = arguments;
         if (!arguments.script.empty()) (*state).actions = games::dogfood::read_script(arguments.script);
@@ -218,15 +270,27 @@ int main(int argc,char** argv) {
             (*state).collection = collection; root = collection;
         }
         (*state).root = root;
-        std::unique_ptr<gf::Window> window = std::make_unique<gf::Window>(root,gf::Size{1060,680});
+        std::unique_ptr<gf::Window> window = std::make_unique<gf::Window>(application,root,gf::Size{1060,680});
+        // PlaySuite's look is one light look: its theme declares the light scheme only,
+        // and a window in the dark scheme would fall back to GUI.Forms' dark theme.
+        gf::PresentationOverrides light{};
+        light.colour_scheme.set(gf::ColourScheme::light);
+        (*window).set_presentation_overrides(light);
         gf::ApplicationWindowOptions options;
         options.title = games::suite_name();
         options.initial_size = {1060,680}; options.minimum_size = {600,420};
         options.print_metrics_on_close = true; options.ready = Ready{state};
-        const gf::ApplicationResult result = gf::Application::run(std::move(window),std::move(options));
+        const gf::ApplicationResult result = application.run(std::move(window),std::move(options));
         if (result.callback_exception) std::rethrow_exception(result.callback_exception);
-        if ((arguments.smoke || arguments.profile || !arguments.script.empty()) && !(*state).completed) return 1;
-        if ((*state).completed && result.accepted()) std::cout << "Native Pocket Library window smoke passed\n";
+        const bool completed = (*state).completed;
+        // Everything the run made goes before the rendering library ends: the run state
+        // (a standalone game's module), then the application and its resources.
+        state.reset();
+        root.reset();
+        created.application.reset();
+        static_cast<void>(gf::Application::shutdown());
+        if ((arguments.smoke || arguments.profile || !arguments.script.empty()) && !completed) return 1;
+        if (completed && result.accepted()) std::cout << "Native Pocket Library window smoke passed\n";
         return result.accepted() ? 0 : 1;
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';

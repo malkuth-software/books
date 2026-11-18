@@ -118,7 +118,7 @@ void ShelfWood::make(gf::Window& window) {
     plank_pixels = {static_cast<double>(pw), static_cast<double>(ph)};
 }
 
-void ShelfWood::release(gf::Window& window) {
+void ShelfWood::release(gf::SurfaceRoot& window) {
     if (wall.value)
         static_cast<void>(window.remove_image(wall));
     if (plank.value)

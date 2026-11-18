@@ -1,0 +1,10 @@
+{
+  "format": "gui-forms-theme/1",
+  "name": "playsuite",
+  "version": "1.0.0",
+  "engine": ">=0.3",
+  "sheet": {
+    "path": "playsuite.theme.css",
+    "sha256": "1b22065cbe6ed70505026392bce395ac8582da0b27438c9ecfb2e76145fc4f58"
+  }
+}

@@ -1,7 +1,8 @@
 #pragma once
+#include "capsule_title_face.hpp"
+#include "command_capsule_control.hpp"  // generated from controls/command-capsule.control
 #include "suite.hpp"
 #include "suite_model.hpp"
-#include "text_sprites.hpp"
 #include <functional>
 #include <memory>
 namespace games {
@@ -12,15 +13,23 @@ namespace games {
 // rest of the game's commands, the master music, sound and motion switches and the
 // Settings button. The switches are bound to the shell's master commands: whatever
 // changes a master, every switch shows it at once, slashed in red when off.
-class CommandCapsule final : public gf::Control {
+//
+// The capsule is a GUI.Forms composite (controls/command-capsule.control, generated into
+// CommandCapsuleControl by gui_forms_add_control): its pill is the document's themed part and
+// its title the document's label, drawn by GUI.Forms' text engine in Barlow Condensed, loaded
+// by the shell and borrowed here (CapsuleTitleFace; the owner admits app-loaded faces inside
+// composites).
+// This class adds what the document cannot say: the commands, which change with the game, the
+// master switches, and the wrapping, opening layout.
+class CommandCapsule final : public CommandCapsuleControl {
   public:
-    CommandCapsule(gf::StableId id, TextSprites& sprites);
+    // `title_family` is the shell's, which owns the family; the capsule copies its number.
+    CommandCapsule(gf::StableId id, const CapsuleTitleFamily& title_family);
     static constexpr bool initialize_tree_after_construction = true;
     // Room round the pill for its soft shadow: the control is this much larger than the pill.
     static constexpr double shadow_margin = 14;
     void initialize_control_tree();
     void arrange(gf::Rect bounds) override;
-    void on_paint(gf::Painter& painter, gf::Rect damage) override;
     [[nodiscard]] bool hit_test_local(gf::Point local) const override;
 
     void set_game(std::string title, std::vector<GameCommand> commands);
@@ -46,7 +55,9 @@ class CommandCapsule final : public gf::Control {
     std::function<void(const std::string&)> command;
 
   private:
-    TextSprites& sprites_;
+    CapsuleTitleFace title_face_;
+    // The document's title label (@title), its font from title_face_.
+    std::shared_ptr<gf::Label> title_label_;
     std::string title_;
     std::vector<GameCommand> commands_;
     std::shared_ptr<SuiteButton> back_, more_;

@@ -15,10 +15,11 @@
 #include "shelf_scene.hpp"
 
 #include "gui_forms/basic_controls.hpp"
-#include "gui_forms/controls/panel/text_box/text_box.hpp"
+#include "gui_forms/controls/text_box.hpp"
 #include "gui_forms/live_surface.hpp"
 #include "gui_forms/threading.hpp"
 #include "gui_forms/timer.hpp"
+#include "routed_input.hpp"
 
 #include <chrono>
 #include <memory>
@@ -34,7 +35,7 @@ struct Options {
     bool dev = false;     // a separate bookmarks file, for tests and development
 };
 
-class PocketLibraryView final : public gf::Control, public games::CommandSource {
+class PocketLibraryView final : public games::RoutedInput<gf::Control>, public games::CommandSource {
   public:
     PocketLibraryView(gf::StableId id, Options options);
     ~PocketLibraryView() override;
@@ -42,10 +43,10 @@ class PocketLibraryView final : public gf::Control, public games::CommandSource 
     void initialize_control_tree();
     void arrange(gf::Rect bounds) override;
     void on_paint(gf::Painter& painter, gf::Rect damage) override;
-    void on_pointer(gf::PointerEvent& event) override;
-    void on_key(gf::KeyEvent& event) override;
+    void handle_pointer(gf::PointerEvent& event) override;
+    void handle_key(gf::KeyEvent& event) override;
     void on_key_bubble(gf::KeyEvent& event) override {
-        on_key(event);
+        handle_key(event);
     }
 
     // The shell calls these. activate: the game has just been shown; take the keyboard.
@@ -97,7 +98,7 @@ class PocketLibraryView final : public gf::Control, public games::CommandSource 
     std::unique_ptr<gf::Worker> preparing_;
 
     void on_attached_to_window() override;
-    void on_detaching_from_window(gf::Window& window) noexcept override;
+    void on_detaching_from_window(gf::SurfaceRoot& window) noexcept override;
     void tick();
     void request_frame();
     void render();
