@@ -371,6 +371,10 @@ jobs:
       # (share/licenses/GUIForms, share/GUIForms/fonts): install the toolkit the build used.
       - name: Install GUI.Forms into an SDK prefix for packaging
         run: |
+          # GUI.Forms is an EXCLUDE_FROM_ALL subdirectory: the application build compiles only
+          # what it links, so build the toolkit directory's own targets (its install set,
+          # gui_forms_theme_check among them) before installing them.
+          cmake --build .build/native/app --target toolkit/all --parallel 4
           cmake --install .build/native/app/toolkit --prefix "$RUNNER_TEMP/gui-forms-sdk"
           echo "GUI_FORMS_SDK=$RUNNER_TEMP/gui-forms-sdk" >> "$GITHUB_ENV"
       - name: Package Windows application and installer
