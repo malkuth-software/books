@@ -16,7 +16,9 @@
   <part name="pill" role="face" shape="pill" box="inset(region, 14)"/>
 
   <children>
-    <label id="@title" text="bind(self.title, one_way)" classes="capsule-title"/>
+    <label id="@title" classes="capsule-title">
+      <bind property="text" to="self.title" mode="one-way"/>
+    </label>
   </children>
 
   <!-- The capsule is no stop; its buttons are. -->

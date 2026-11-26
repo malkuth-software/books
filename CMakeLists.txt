@@ -67,7 +67,7 @@ if(GAMES_BUILD_APPLICATION AND GUIForms_DIR)
   # compositor sets type with STXlib's glyph engine (stxlib::algorithms), which
   # the package finds beside itself (find_dependency(stxlib)); GUI.Forms has
   # no FreeType or HarfBuzz since 2026-11-16.
-  find_package(GUIForms 0.6 CONFIG REQUIRED
+  find_package(GUIForms 1.0 CONFIG REQUIRED
     COMPONENTS Application Audio AudioLoopTransport TextMasks)
 elseif(GAMES_BUILD_APPLICATION)
   set(GAMES_TOOLKIT_SOURCE_DIR "" CACHE PATH "Reviewed GUI.Forms source for development application builds")
